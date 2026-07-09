@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "visomod",
+  "version": "${version}",
+  "name": "Viso Isometric Exporter",
+  "description": "Mine-to-Web Isometric Exporter para Minecraft. Selecione áreas no jogo e exporte em formato JSON/GZIP para visualização web isométrica.",
+  "authors": [
+    "VisoMod Team"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/visomod/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.visomod.VisoMod"
+    ],
+    "client": [
+      "com.visomod.VisoModClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": ">=26.2",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

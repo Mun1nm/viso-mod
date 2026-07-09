@@ -1,0 +1,214 @@
+import { MinecraftDataService } from './loader/MinecraftData.js';
+import { ExportLoader } from './loader/ExportLoader.js';
+import { TextureManager } from './engine/TextureManager.js';
+import { IsometricScene } from './engine/IsometricScene.js';
+import { ChunkRenderer } from './engine/ChunkRenderer.js';
+import { RaycastInspector } from './engine/RaycastInspector.js';
+import { SampleStructureProvider } from './samples/sampleStructures.js';
+
+class App {
+  constructor() {
+    this.mcDataService = new MinecraftDataService('1.20.4');
+    this.textureManager = new TextureManager(this.mcDataService);
+
+    const container = document.getElementById('canvas-container');
+    this.isoScene = new IsometricScene(container);
+    this.chunkRenderer = new ChunkRenderer(this.isoScene.scene, this.textureManager, this.mcDataService);
+    this.inspector = new RaycastInspector(this.isoScene, this.chunkRenderer, this.mcDataService);
+
+    this.currentStructure = null;
+
+    this.initUI();
+    this.loadSample('castle');
+    this.animate();
+  }
+
+  initUI() {
+    // 1. Sample Selection Dropdown
+    const sampleSelect = document.getElementById('sample-select');
+    sampleSelect.addEventListener('change', (e) => {
+      this.loadSample(e.target.value);
+    });
+
+    // 2. File Upload Button
+    const fileInput = document.getElementById('file-input');
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          const data = await ExportLoader.loadFromFile(file);
+          this.loadStructureData(data);
+        } catch (err) {
+          alert('Erro ao carregar arquivo de exportação: ' + err.message);
+        }
+      }
+    });
+
+    // 3. Drag and Drop Zone
+    const dropZone = document.getElementById('drop-zone');
+    window.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('hidden');
+    });
+
+    dropZone.addEventListener('dragover', (e) => e.preventDefault());
+
+    dropZone.addEventListener('dragleave', (e) => {
+      if (e.relatedTarget === null || e.target === dropZone) {
+        dropZone.classList.add('hidden');
+      }
+    });
+
+    dropZone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      dropZone.classList.add('hidden');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        try {
+          const data = await ExportLoader.loadFromFile(file);
+          this.loadStructureData(data);
+        } catch (err) {
+          alert('Erro na leitura do arquivo GZIP/JSON: ' + err.message);
+        }
+      }
+    });
+
+    // 4. Y-Slice Slider & Navigation Buttons
+    this.ySlider = document.getElementById('y-slice-slider');
+    this.yLabel = document.getElementById('slice-y-label');
+    const btnUp = document.getElementById('btn-slice-up');
+    const btnDown = document.getElementById('btn-slice-down');
+
+    this.ySlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10);
+      this.updateYSlice(val);
+    });
+
+    btnUp.addEventListener('click', () => {
+      const current = parseInt(this.ySlider.value, 10);
+      const max = parseInt(this.ySlider.max, 10);
+      if (current < max) {
+        this.ySlider.value = current + 1;
+        this.updateYSlice(current + 1);
+      }
+    });
+
+    btnDown.addEventListener('click', () => {
+      const current = parseInt(this.ySlider.value, 10);
+      if (current > 0) {
+        this.ySlider.value = current - 1;
+        this.updateYSlice(current - 1);
+      }
+    });
+
+    // 5. Culling Toggle
+    const toggleCulling = document.getElementById('toggle-culling');
+    toggleCulling.addEventListener('change', (e) => {
+      const stats = this.chunkRenderer.setCulling(e.target.checked);
+      this.updateStatsUI(stats);
+    });
+
+    // 6. Isometric Angle Buttons
+    const isoButtons = document.querySelectorAll('.btn-iso');
+    isoButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        isoButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const angle = parseInt(btn.dataset.angle, 10);
+        this.isoScene.setIsometricAngle(angle);
+      });
+    });
+
+    // 7. Camera Controls
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+      this.isoScene.setZoom(-3);
+    });
+
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+      this.isoScene.setZoom(3);
+    });
+
+    document.getElementById('btn-reset-view').addEventListener('click', () => {
+      if (this.currentStructure) {
+        this.isoScene.centerOnStructure(this.currentStructure.metadata.dimensions);
+      }
+    });
+
+    // 8. Environment Toggles
+    const btnGrid = document.getElementById('btn-toggle-grid');
+    btnGrid.addEventListener('click', () => {
+      btnGrid.classList.toggle('active');
+      this.isoScene.toggleGrid(btnGrid.classList.contains('active'));
+    });
+
+    const btnShadows = document.getElementById('btn-toggle-shadows');
+    btnShadows.addEventListener('click', () => {
+      btnShadows.classList.toggle('active');
+      this.isoScene.toggleShadows(btnShadows.classList.contains('active'));
+    });
+  }
+
+  async loadSample(sampleId) {
+    if (sampleId === 'castle') {
+      try {
+        const norm = await ExportLoader.loadFromUrl('/samples/test_castle.json.gz');
+        this.loadStructureData(norm);
+        return;
+      } catch (e) {
+        console.warn('Fallback GZIP falhou, tentando JSON ou procedimental:', e);
+        try {
+          const normJson = await ExportLoader.loadFromUrl('/samples/test_castle.json');
+          this.loadStructureData(normJson);
+          return;
+        } catch (e2) {
+          console.warn('Usando castelo procedimental:', e2);
+        }
+      }
+    }
+
+    const data = SampleStructureProvider.getSample(sampleId);
+    this.loadStructureData(data);
+  }
+
+  loadStructureData(exportData) {
+    this.currentStructure = exportData;
+    const dims = exportData.metadata.dimensions;
+
+    // Configure Y Slider bounds
+    const maxY = dims.y - 1;
+    this.ySlider.max = maxY;
+    this.ySlider.value = maxY;
+    this.yLabel.textContent = `Y: ${maxY}`;
+
+    const stats = this.chunkRenderer.loadStructure(exportData);
+
+    // Center scene isometric camera
+    this.isoScene.centerOnStructure(dims);
+
+    // Update Dimensions UI stat
+    document.getElementById('stat-dimensions').textContent = `${dims.x} × ${dims.y} × ${dims.z}`;
+    this.updateStatsUI(stats);
+  }
+
+  updateYSlice(sliceY) {
+    this.yLabel.textContent = `Y: ${sliceY}`;
+    const stats = this.chunkRenderer.setSliceY(sliceY);
+    this.updateStatsUI(stats);
+  }
+
+  updateStatsUI(stats) {
+    if (!stats) return;
+    document.getElementById('stat-total').textContent = stats.total ?? 0;
+    document.getElementById('stat-visible').textContent = stats.visible ?? 0;
+    document.getElementById('stat-culled').textContent = stats.culled ?? 0;
+  }
+
+  animate() {
+    requestAnimationFrame(() => this.animate());
+    this.isoScene.render();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  new App();
+});

@@ -1,0 +1,443 @@
+/* Design System Premium - Viso Isometric Exporter */
+:root {
+  --bg-primary: #0a0d14;
+  --bg-gradient: radial-gradient(circle at 50% 30%, #151c2e 0%, #0a0d14 70%);
+  --glass-bg: rgba(16, 22, 36, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.11);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --accent-cyan: #00f0ff;
+  --accent-amber: #ffb800;
+  --accent-green: #10b981;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-code: 'Fira Code', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  background-image: var(--bg-gradient);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.app-header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: rgba(10, 13, 20, 0.85);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  z-index: 50;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #00f0ff, #3b82f6);
+  color: #0a0d14;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+}
+
+.logo-text h1 {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.logo-text h1 span {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.logo-text p {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sample-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+#sample-select {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-main);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#sample-select:hover {
+  border-color: var(--accent-cyan);
+}
+
+.btn-upload {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #00f0ff, #0284c7);
+  color: #050811;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 240, 255, 0.25);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-upload:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 240, 255, 0.4);
+}
+
+/* Viewport & Glass Panels */
+.viewport-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+#canvas-container {
+  width: 100%;
+  height: 100%;
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Stats Pill (Top Right) */
+.stats-panel {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 220px;
+  z-index: 20;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.stat-label {
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-family: var(--font-code);
+  font-weight: 600;
+}
+
+.text-cyan { color: var(--accent-cyan); }
+.text-amber { color: var(--accent-amber); }
+
+/* Slicer Panel (Right Side) */
+.slicer-panel {
+  position: absolute;
+  top: 170px;
+  right: 24px;
+  width: 240px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 20;
+}
+
+.slicer-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-cyan);
+  font-family: var(--font-heading);
+}
+
+.slicer-header h4 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.slicer-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.slicer-info strong {
+  color: var(--text-main);
+  font-family: var(--font-code);
+  font-size: 13px;
+}
+
+.slider-wrapper {
+  width: 100%;
+}
+
+#y-slice-slider {
+  width: 100%;
+  accent-color: var(--accent-cyan);
+  cursor: pointer;
+}
+
+.slicer-nav-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-slice {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-slice:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--accent-cyan);
+}
+
+/* Toggle switch */
+.slicer-toggle {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Isometric Controls Bar (Bottom Center) */
+.isometric-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 18px;
+  z-index: 20;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-group-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+
+.button-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-iso, .btn-icon, .btn-text, .btn-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-iso.active, .btn-toggle.active {
+  background: rgba(0, 240, 255, 0.18);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.btn-iso:hover, .btn-icon:hover, .btn-text:hover, .btn-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.control-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Interactive Inspector Card (Bottom Left) */
+.inspector-card {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 210px;
+  z-index: 20;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.inspector-card.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+}
+
+.inspector-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.block-preview-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #4a5568;
+}
+
+.inspector-titles h4 {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+}
+
+.inspector-titles span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.inspector-coords {
+  display: flex;
+  gap: 8px;
+}
+
+.coord-tag {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: var(--font-code);
+}
+
+.coord-tag strong {
+  color: var(--accent-amber);
+}
+
+/* Drag & Drop Zone Overlay */
+.drop-zone {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 13, 20, 0.88);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: opacity 0.25s;
+}
+
+.drop-zone.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.drop-zone-content {
+  text-align: center;
+  border: 2px dashed var(--accent-cyan);
+  padding: 48px;
+  border-radius: 20px;
+  background: rgba(0, 240, 255, 0.05);
+}
+
+.drop-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.drop-zone-content h3 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.drop-zone-content p {
+  color: var(--text-muted);
+  font-size: 14px;
+}
