@@ -1,6 +1,6 @@
 package com.visomod.selection;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 public class SelectionManager {
     private static final SelectionManager INSTANCE = new SelectionManager();
@@ -15,11 +15,11 @@ public class SelectionManager {
     }
 
     public void setPosA(BlockPos pos) {
-        this.posA = pos.toImmutable();
+        this.posA = pos.immutable();
     }
 
     public void setPosB(BlockPos pos) {
-        this.posB = pos.toImmutable();
+        this.posB = pos.immutable();
     }
 
     public BlockPos getPosA() {
@@ -63,12 +63,7 @@ public class SelectionManager {
         };
     }
 
-    public long getTotalBlocks() {
-        int[] dims = getDimensions();
-        return (long) dims[0] * dims[1] * dims[2];
-    }
-
-    public void clear() {
+    public void clearSelection() {
         posA = null;
         posB = null;
     }

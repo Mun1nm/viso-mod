@@ -6,11 +6,11 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,18 +18,18 @@ public class VisoMod implements ModInitializer {
     public static final String MOD_ID = "visomod";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final ExportWandItem EXPORT_WAND = new ExportWandItem(new Item.Settings().maxCount(1));
+    public static final ExportWandItem EXPORT_WAND = new ExportWandItem(new Item.Properties().stacksTo(1));
 
     @Override
     public void onInitialize() {
         LOGGER.info("[VisoMod] Inicializando Mine-to-Web Isometric Exporter para Minecraft 26.2...");
 
         // Register Export Wand Item
-        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "export_wand"), EXPORT_WAND);
+        Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(MOD_ID, "export_wand"), EXPORT_WAND);
         
         // Add to Tools Creative Tab
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
-            content.add(EXPORT_WAND);
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(content -> {
+            content.accept(EXPORT_WAND);
         });
 
         // Register left-click selection handler

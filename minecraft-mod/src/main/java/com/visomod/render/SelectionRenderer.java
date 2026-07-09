@@ -3,9 +3,9 @@ package com.visomod.render;
 import com.visomod.selection.SelectionManager;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public class SelectionRenderer implements WorldRenderEvents.Last {
 
@@ -22,7 +22,7 @@ public class SelectionRenderer implements WorldRenderEvents.Last {
             return;
         }
 
-        Vec3d cameraPos = context.camera().getPos();
+        Vec3 cameraPos = context.camera().getPosition();
         double minX = min.getX() - cameraPos.x;
         double minY = min.getY() - cameraPos.y;
         double minZ = min.getZ() - cameraPos.z;
@@ -30,14 +30,12 @@ public class SelectionRenderer implements WorldRenderEvents.Last {
         double maxY = max.getY() + 1 - cameraPos.y;
         double maxZ = max.getZ() + 1 - cameraPos.z;
 
-        Box box = new Box(minX, minY, minZ, maxX, maxY, maxZ);
+        AABB box = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
         // Draw translucent selection bounding box representation
         renderBoundingBox(context, box);
     }
 
-    private void renderBoundingBox(WorldRenderContext context, Box box) {
+    private void renderBoundingBox(WorldRenderContext context, AABB box) {
         // High contrast isometric selection outline visualizer
-        // In standard Minecraft/Fabric client render context, custom debug lines or vertex buffers
-        // render around the selection box.
     }
 }

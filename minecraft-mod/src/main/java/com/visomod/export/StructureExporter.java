@@ -1,9 +1,10 @@
 package com.visomod.export;
 
 import com.visomod.selection.SelectionManager;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -17,7 +18,7 @@ import java.util.zip.GZIPOutputStream;
 
 public class StructureExporter {
 
-    public static ExportResult exportSelection(World world, String fileName) throws IOException {
+    public static ExportResult exportSelection(Level world, String fileName) throws IOException {
         SelectionManager sm = SelectionManager.getInstance();
         if (!sm.hasCompleteSelection()) {
             throw new IllegalStateException("Seleção incompleta. Defina os pontos A e B com a Varinha de Exportação.");
@@ -46,10 +47,7 @@ public class StructureExporter {
                         continue; // skip air for compactness
                     }
 
-                    String blockId = state.getBlock().getTranslationKey().replace("block.", "").replace(".", ":");
-                    if (!blockId.contains(":")) {
-                        blockId = "minecraft:" + blockId;
-                    }
+                    String blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
 
                     int paletteId;
                     if (!blockToPaletteId.containsKey(blockId)) {
@@ -61,49 +59,46 @@ public class StructureExporter {
                         paletteId = blockToPaletteId.get(blockId);
                     }
 
-                    int relX = x - min.getX();
-                    int relY = y - min.getY();
-                    int relZ = z - min.getZ();
-
-                    exportData.blocks.add(new ExportData.BlockEntry(relX, relY, relZ, paletteId));
+                    exportData.blocks.add(new ExportData.BlockEntry(
+                            x - min.getX(),
+                            y - min.getY(),
+                            z - min.getZ(),
+                            paletteId
+                    ));
                 }
             }
         }
 
-        File exportDir = new File("exports");
-        if (!exportDir.exists()) {
-            exportDir.mkdirs();
+        // Save raw JSON copy and compressed GZIP file in exports directory
+        File exportsDir = new File("exports");
+        if (!exportsDir.exists()) {
+            exportsDir.mkdirs();
         }
 
-        String baseName = fileName.endsWith(".json") || fileName.endsWith(".gz")
-                ? fileName.replaceAll("\\.json(\\.gz)?$", "")
-                : fileName;
-
-        // 1. Save GZIP Compressed JSON (.json.gz)
-        File gzipFile = new File(exportDir, baseName + ".json.gz");
-        try (GZIPOutputStream gzipOut = new GZIPOutputStream(new FileOutputStream(gzipFile));
-             OutputStreamWriter writer = new OutputStreamWriter(gzipOut, StandardCharsets.UTF_8)) {
-            writer.write(exportData.toJson(false));
-        }
-
-        // 2. Save uncompressed JSON for developer inspection (.json)
-        File jsonFile = new File(exportDir, baseName + ".json");
-        try (FileWriter writer = new FileWriter(jsonFile, StandardCharsets.UTF_8)) {
+        File rawJsonFile = new File(exportsDir, fileName + ".json");
+        try (FileWriter writer = new FileWriter(rawJsonFile, StandardCharsets.UTF_8)) {
             writer.write(exportData.toJson(true));
         }
 
-        return new ExportResult(gzipFile, jsonFile, exportData.blocks.size(), exportData.palette.size());
+        File gzipFile = new File(exportsDir, fileName + ".json.gz");
+        try (FileOutputStream fos = new FileOutputStream(gzipFile);
+             GZIPOutputStream gzos = new GZIPOutputStream(fos);
+             OutputStreamWriter osw = new OutputStreamWriter(gzos, StandardCharsets.UTF_8)) {
+            osw.write(exportData.toJson(false));
+        }
+
+        return new ExportResult(rawJsonFile, gzipFile, exportData.blocks.size(), blockToPaletteId.size());
     }
 
     public static class ExportResult {
-        public File gzipFile;
-        public File jsonFile;
-        public int totalBlocks;
-        public int paletteSize;
+        public final File rawJsonFile;
+        public final File gzipFile;
+        public final int totalBlocks;
+        public final int paletteSize;
 
-        public ExportResult(File gzipFile, File jsonFile, int totalBlocks, int paletteSize) {
+        public ExportResult(File rawJsonFile, File gzipFile, int totalBlocks, int paletteSize) {
+            this.rawJsonFile = rawJsonFile;
             this.gzipFile = gzipFile;
-            this.jsonFile = jsonFile;
             this.totalBlocks = totalBlocks;
             this.paletteSize = paletteSize;
         }

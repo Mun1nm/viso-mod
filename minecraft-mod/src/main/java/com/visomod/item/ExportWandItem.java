@@ -1,59 +1,60 @@
 package com.visomod.item;
 
 import com.visomod.selection.SelectionManager;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.context.UseOnContext;
 
 public class ExportWandItem extends Item {
 
-    public ExportWandItem(Settings settings) {
-        super(settings);
+    public ExportWandItem(Properties properties) {
+        super(properties);
     }
 
     @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
-        PlayerEntity player = context.getPlayer();
-        if (player != null && !context.getWorld().isClient) {
-            BlockPos pos = context.getBlockPos();
+    public InteractionResult useOn(UseOnContext context) {
+        Player player = context.getPlayer();
+        if (player != null && !context.getLevel().isClientSide()) {
+            BlockPos pos = context.getClickedPos();
             SelectionManager.getInstance().setPosB(pos);
 
             int[] dims = SelectionManager.getInstance().getDimensions();
-            player.sendMessage(Text.literal("[VisoMod] ")
-                    .formatted(Formatting.GOLD)
-                    .append(Text.literal("Ponto B selecionado em (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")")
-                            .formatted(Formatting.YELLOW)), false);
+            player.sendSystemMessage(Component.literal("[VisoMod] ")
+                    .withStyle(ChatFormatting.GOLD)
+                    .append(Component.literal("Ponto B selecionado em (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")")
+                            .withStyle(ChatFormatting.YELLOW)));
 
             if (SelectionManager.getInstance().hasCompleteSelection()) {
-                player.sendMessage(Text.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
-                        .formatted(Formatting.GREEN), false);
+                player.sendSystemMessage(Component.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
+                        .withStyle(ChatFormatting.GREEN));
             }
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
-    public static ActionResult onAttackBlock(PlayerEntity player, BlockPos pos) {
-        if (player != null && player.getMainHandStack().getItem() instanceof ExportWandItem) {
-            if (!player.getWorld().isClient) {
+    public static InteractionResult onAttackBlock(Player player, BlockPos pos) {
+        if (player != null && player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ExportWandItem) {
+            if (!player.level().isClientSide()) {
                 SelectionManager.getInstance().setPosA(pos);
 
                 int[] dims = SelectionManager.getInstance().getDimensions();
-                player.sendMessage(Text.literal("[VisoMod] ")
-                        .formatted(Formatting.GOLD)
-                        .append(Text.literal("Ponto A selecionado em (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")")
-                                .formatted(Formatting.AQUA)), false);
+                player.sendSystemMessage(Component.literal("[VisoMod] ")
+                        .withStyle(ChatFormatting.GOLD)
+                        .append(Component.literal("Ponto A selecionado em (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")")
+                                .withStyle(ChatFormatting.AQUA)));
 
                 if (SelectionManager.getInstance().hasCompleteSelection()) {
-                    player.sendMessage(Text.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
-                            .formatted(Formatting.GREEN), false);
+                    player.sendSystemMessage(Component.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
+                            .withStyle(ChatFormatting.GREEN));
                 }
             }
-            return ActionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 }
