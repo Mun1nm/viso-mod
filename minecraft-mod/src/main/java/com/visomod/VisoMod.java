@@ -5,7 +5,9 @@ import com.visomod.item.ExportWandItem;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -24,6 +26,11 @@ public class VisoMod implements ModInitializer {
 
         // Register Export Wand Item
         Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "export_wand"), EXPORT_WAND);
+        
+        // Add to Tools Creative Tab
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
+            content.add(EXPORT_WAND);
+        });
 
         // Register left-click selection handler
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) ->
