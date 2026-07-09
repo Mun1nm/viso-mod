@@ -24,14 +24,14 @@ public class ExportWandItem extends Item {
             SelectionManager.getInstance().setPosB(pos);
 
             int[] dims = SelectionManager.getInstance().getDimensions();
-            player.sendSystemMessage(Component.literal("[VisoMod] ")
+            player.displayClientMessage(Component.literal("[VisoMod] ")
                     .withStyle(ChatFormatting.GOLD)
                     .append(Component.literal("Ponto B selecionado em (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")")
-                            .withStyle(ChatFormatting.YELLOW)));
+                            .withStyle(ChatFormatting.YELLOW)), false);
 
             if (SelectionManager.getInstance().hasCompleteSelection()) {
-                player.sendSystemMessage(Component.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
-                        .withStyle(ChatFormatting.GREEN));
+                player.displayClientMessage(Component.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
+                        .withStyle(ChatFormatting.GREEN), false);
             }
         }
         return InteractionResult.SUCCESS;
@@ -43,14 +43,14 @@ public class ExportWandItem extends Item {
                 SelectionManager.getInstance().setPosA(pos);
 
                 int[] dims = SelectionManager.getInstance().getDimensions();
-                player.sendSystemMessage(Component.literal("[VisoMod] ")
+                player.displayClientMessage(Component.literal("[VisoMod] ")
                         .withStyle(ChatFormatting.GOLD)
                         .append(Component.literal("Ponto A selecionado em (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")")
-                                .withStyle(ChatFormatting.AQUA)));
+                                .withStyle(ChatFormatting.AQUA)), false);
 
                 if (SelectionManager.getInstance().hasCompleteSelection()) {
-                    player.sendSystemMessage(Component.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
-                            .withStyle(ChatFormatting.GREEN));
+                    player.displayClientMessage(Component.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
+                            .withStyle(ChatFormatting.GREEN), false);
                 }
             }
             return InteractionResult.SUCCESS;
