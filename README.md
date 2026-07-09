@@ -18,7 +18,11 @@ viso-mod/
 
 ## 🎮 1. Módulo Minecraft (Mod Fabric 26.2)
 
-### Como compilar o Mod
+### Instalação Rápida (Arquivo `.jar` pronto)
+O arquivo `.jar` do mod compilado está disponível diretamente na pasta do repositório:
+- **`releases/viso-mod-1.0.0.jar`** — Basta copiar para a sua pasta `mods/` do Minecraft Fabric!
+
+### Como compilar manualmente o Mod
 Acesse a pasta `minecraft-mod/` e execute:
 ```bash
 cd minecraft-mod

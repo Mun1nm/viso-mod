@@ -23,7 +23,7 @@ public class VisoMod implements ModInitializer {
         LOGGER.info("[VisoMod] Inicializando Mine-to-Web Isometric Exporter para Minecraft 26.2...");
 
         // Register Export Wand Item
-        Registry.register(Registries.ITEM, new Identifier(MOD_ID, "export_wand"), EXPORT_WAND);
+        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "export_wand"), EXPORT_WAND);
 
         // Register left-click selection handler
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) ->
