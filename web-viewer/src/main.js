@@ -278,7 +278,7 @@ class App {
     this.updateLegendUI();
 
     // Update page title and header with structure name
-    const structureName = exportData.metadata?.name || exportData.metadata?.fileName || 'Estrutura';
+    const structureName = data.metadata?.name || data.metadata?.fileName || 'Estrutura';
     document.title = `VisoMod — ${structureName}`;
     const headerName = document.getElementById('header-structure-name');
     if (headerName) headerName.textContent = structureName;
