@@ -253,17 +253,18 @@ class App {
     this.loadStructureData(data);
   }
 
-  loadStructureData(exportData) {
-    this.currentStructure = exportData;
-    const dims = exportData.metadata.dimensions;
+  loadStructureData(data) {
+    this.currentStructure = data;
+    this.mcDataService.registerPalette(data.palette);
+
+    const dims = data.metadata.dimensions;
+    const stats = this.chunkRenderer.loadStructure(data);
 
     // Configure Y Slider bounds
     const maxY = dims.y - 1;
     this.ySlider.max = maxY;
     this.ySlider.value = maxY;
     this.yLabel.textContent = `Y: ${maxY}`;
-
-    const stats = this.chunkRenderer.loadStructure(exportData);
 
     // Center scene isometric camera
     this.isoScene.centerOnStructure(dims);

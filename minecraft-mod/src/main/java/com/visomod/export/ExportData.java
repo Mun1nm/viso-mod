@@ -42,7 +42,20 @@ public class ExportData {
         for (Map.Entry<String, PaletteEntry> entry : palette.entrySet()) {
             sb.append(indent2).append("\"").append(entry.getKey()).append("\":").append(sp).append("{");
             sb.append("\"id\":").append(sp).append(entry.getValue().id).append(",");
-            sb.append("\"name\":").append(sp).append("\"").append(entry.getValue().name).append("\"");
+            sb.append("\"name\":").append(sp).append("\"").append(entry.getValue().name).append("\",");
+            
+            sb.append("\"properties\":").append(sp).append("{");
+            int pCount = 0;
+            for (Map.Entry<String, String> prop : entry.getValue().properties.entrySet()) {
+                sb.append("\"").append(prop.getKey()).append("\":").append(sp).append("\"").append(prop.getValue()).append("\"");
+                if (pCount++ < entry.getValue().properties.size() - 1) sb.append(",");
+            }
+            sb.append("}");
+
+            if (entry.getValue().base64Texture != null) {
+                sb.append(",\"base64Texture\":").append(sp).append("\"").append(entry.getValue().base64Texture).append("\"");
+            }
+            
             sb.append("}");
             if (pIndex++ < palette.size() - 1) sb.append(",");
             sb.append(nl);
@@ -105,11 +118,13 @@ public class ExportData {
         public int id;
         public String name;
         public Map<String, String> properties;
+        public String base64Texture;
 
-        public PaletteEntry(int id, String name, Map<String, String> properties) {
+        public PaletteEntry(int id, String name, Map<String, String> properties, String base64Texture) {
             this.id = id;
             this.name = name;
             this.properties = properties;
+            this.base64Texture = base64Texture;
         }
     }
 

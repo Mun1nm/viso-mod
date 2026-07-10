@@ -49,9 +49,8 @@ public class VisoMod implements ModInitializer {
                 ExportWandItem.onAttackBlock(player, hand, pos)
         );
 
-        // Register /exportar command
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                ExportCommand.register(dispatcher)
+        net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+                com.visomod.command.ExportCommand.register(dispatcher)
         );
 
         LOGGER.info("[VisoMod] Itens e comandos registrados com sucesso!");

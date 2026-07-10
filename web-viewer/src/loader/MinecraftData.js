@@ -3,6 +3,12 @@ export class MinecraftDataService {
     this.version = version;
     this.blockCache = new Map();
     this.registry = this.buildBlockRegistry();
+    this.palette = {};
+  }
+
+  registerPalette(palette) {
+    this.palette = palette || {};
+    this.blockCache.clear();
   }
 
   getBlockInfo(rawId) {
@@ -11,17 +17,40 @@ export class MinecraftDataService {
       return this.blockCache.get(cleanId);
     }
 
-    const reg = this.registry[cleanId];
+    let baseId = cleanId;
+    let properties = null;
+    let base64Texture = null;
+    let displayName = cleanId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+    if (cleanId.startsWith('palette_')) {
+        const pKey = cleanId.substring(8);
+        const pEntry = this.palette[pKey];
+        if (pEntry) {
+            baseId = pEntry.name.replace('minecraft:', '');
+            properties = pEntry.properties;
+            base64Texture = pEntry.base64Texture;
+            displayName = baseId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            if (properties) {
+                const propsStr = Object.entries(properties).map(([k,v]) => `${k}=${v}`).join(', ');
+                if (propsStr) displayName += ` [${propsStr}]`;
+            }
+        }
+    }
+
+    const reg = this.registry[baseId];
     const info = {
       id: rawId,
-      name: reg ? reg.name : cleanId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      name: baseId,
+      displayName: displayName,
       hardness: reg ? reg.hardness : 1.5,
       material: reg ? reg.material : 'rock',
-      transparent: reg ? reg.transparent : (cleanId.includes('glass') || cleanId.includes('leaves') || cleanId.includes('water')),
-      isWater: cleanId.includes('water'),
-      isGlass: cleanId.includes('glass'),
-      isLeaves: cleanId.includes('leaves'),
-      baseColor: this.resolveBaseColor(cleanId)
+      transparent: reg ? reg.transparent : (baseId.includes('glass') || baseId.includes('leaves') || baseId.includes('water')),
+      isWater: baseId.includes('water'),
+      isGlass: baseId.includes('glass'),
+      isLeaves: baseId.includes('leaves'),
+      baseColor: this.resolveBaseColor(baseId),
+      properties: properties,
+      base64Texture: base64Texture
     };
 
     this.blockCache.set(cleanId, info);

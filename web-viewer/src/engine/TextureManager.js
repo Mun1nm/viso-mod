@@ -12,7 +12,21 @@ export class TextureManager {
     }
 
     const info = this.mcDataService.getBlockInfo(blockId);
-    const materials = this.generateBlockMaterials(blockId, info);
+    let materials;
+    if (info.base64Texture) {
+      const img = new Image();
+      img.src = info.base64Texture;
+      const tex = new THREE.Texture(img);
+      img.onload = () => { tex.needsUpdate = true; };
+      tex.magFilter = THREE.NearestFilter;
+      tex.minFilter = THREE.NearestFilter;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const mat = this.makeStandardMat(tex, info.transparent);
+      materials = [mat, mat, mat, mat, mat, mat];
+    } else {
+      materials = this.generateBlockMaterials(blockId, info);
+    }
+    
     this.materialCache.set(blockId, materials);
     return materials;
   }

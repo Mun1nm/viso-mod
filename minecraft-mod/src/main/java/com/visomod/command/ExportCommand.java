@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.visomod.export.StructureExporter;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -13,8 +14,6 @@ public class ExportCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("exportar")
-                // In Minecraft 26.2, hasPermission/hasPermissionLevel no longer exist.
-                // Use .requires(source -> true) to allow all players.
                 .requires(source -> true)
                 .then(Commands.argument("nome_arquivo", StringArgumentType.word())
                         .executes(ExportCommand::executeExport)));
@@ -26,7 +25,7 @@ public class ExportCommand {
 
         try {
             StructureExporter.ExportResult result = StructureExporter.exportSelection(
-                    source.getLevel(), fileName
+                    Minecraft.getInstance().level, fileName
             );
 
             source.sendSuccess(() -> Component.literal("[VisoMod] ")
@@ -38,10 +37,12 @@ public class ExportCommand {
                     .append(Component.literal(result.htmlFile.getName() + " (HTML Standalone)")
                             .withStyle(ChatFormatting.AQUA)), false);
 
-            return 1;
         } catch (Exception e) {
-            source.sendFailure(Component.literal("[VisoMod] Erro na exportação: " + e.getMessage()));
-            return 0;
+            source.sendFailure(Component.literal("[Erro VisoMod] Falha na exportação: " + e.getMessage())
+                    .withStyle(ChatFormatting.RED));
+            e.printStackTrace();
         }
+
+        return 1;
     }
 }

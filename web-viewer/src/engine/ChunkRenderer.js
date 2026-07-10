@@ -27,8 +27,7 @@ export class ChunkRenderer {
 
     this.blockColorMap = new Map();
     this.distinctMaterials = new Map();
-
-    this.geometry = new THREE.BoxGeometry(1, 1, 1);
+    this.geometryCache = new Map();
 
     this.shadowMeshes = [];
     this.shadowMaterialCache = new Map();
@@ -167,12 +166,15 @@ export class ChunkRenderer {
 
     for (const [blockId, instances] of this.blockInstances.entries()) {
       if (instances.length === 0) continue;
-
+      
+      const info = this.mcDataService.getBlockInfo(blockId);
       const materials = this.distinctColorsMode
         ? this.getDistinctMaterialForBlock(blockId)
         : this.textureManager.getMaterialForBlock(blockId);
 
-      const instMesh = new THREE.InstancedMesh(this.geometry, materials, instances.length);
+      const geometry = this.getGeometryForBlock(info);
+
+      const instMesh = new THREE.InstancedMesh(geometry, materials, instances.length);
       instMesh.castShadow = true;
       instMesh.receiveShadow = true;
       instMesh.userData = { blockId };
@@ -180,6 +182,24 @@ export class ChunkRenderer {
       for (let i = 0; i < instances.length; i++) {
         const b = instances[i];
         dummy.position.set(b.x, b.y, b.z);
+        dummy.rotation.set(0, 0, 0);
+        
+        // Apply rotations based on facing/axis properties
+        if (info.properties) {
+            const facing = info.properties.facing;
+            const axis = info.properties.axis;
+            if (facing) {
+                if (facing === 'east') dummy.rotation.y = -Math.PI / 2;
+                else if (facing === 'west') dummy.rotation.y = Math.PI / 2;
+                else if (facing === 'south') dummy.rotation.y = Math.PI;
+                else if (facing === 'up') dummy.rotation.x = -Math.PI / 2;
+                else if (facing === 'down') dummy.rotation.x = Math.PI / 2;
+            } else if (axis) {
+                if (axis === 'x') dummy.rotation.z = Math.PI / 2;
+                else if (axis === 'z') dummy.rotation.x = Math.PI / 2;
+            }
+        }
+        
         dummy.updateMatrix();
         instMesh.setMatrixAt(i, dummy.matrix);
       }
@@ -269,8 +289,10 @@ export class ChunkRenderer {
     for (const [blockId, instances] of byBlock.entries()) {
       if (instances.length === 0) continue;
 
+      const info = this.mcDataService.getBlockInfo(blockId);
+      const geometry = this.getGeometryForBlock(info);
       const shadowMat = this.getShadowMaterial(blockId);
-      const shadowMesh = new THREE.InstancedMesh(this.geometry, shadowMat, instances.length);
+      const shadowMesh = new THREE.InstancedMesh(geometry, shadowMat, instances.length);
       shadowMesh.castShadow = false;
       shadowMesh.receiveShadow = false;
       shadowMesh.renderOrder = -1; // render before main layer
@@ -278,6 +300,22 @@ export class ChunkRenderer {
       for (let i = 0; i < instances.length; i++) {
         const b = instances[i];
         dummy.position.set(b.x, b.y, b.z);
+        dummy.rotation.set(0, 0, 0);
+        
+        if (info.properties) {
+            const facing = info.properties.facing;
+            const axis = info.properties.axis;
+            if (facing) {
+                if (facing === 'east') dummy.rotation.y = -Math.PI / 2;
+                else if (facing === 'west') dummy.rotation.y = Math.PI / 2;
+                else if (facing === 'south') dummy.rotation.y = Math.PI;
+                else if (facing === 'up') dummy.rotation.x = -Math.PI / 2;
+                else if (facing === 'down') dummy.rotation.x = Math.PI / 2;
+            } else if (axis) {
+                if (axis === 'x') dummy.rotation.z = Math.PI / 2;
+                else if (axis === 'z') dummy.rotation.x = Math.PI / 2;
+            }
+        }
         if (this.shadowStyle === 'shrink') {
           dummy.scale.set(0.85, 0.85, 0.85);
         } else {
@@ -312,7 +350,89 @@ export class ChunkRenderer {
     const nb = this.voxelGrid.get(this.packCoord(x, y, z));
     if (!nb) return false;
     const info = this.mcDataService.getBlockInfo(nb.id);
-    return !info.transparent;
+    if (info.transparent) return false;
+    // Slabs, stairs, walls are never fully opaque cubes
+    if (info.name && (info.name.includes('slab') || info.name.includes('stairs') || info.name.includes('wall') || info.name.includes('fence'))) {
+      return false;
+    }
+    return true;
+  }
+
+  getGeometryForBlock(info) {
+    const cacheKey = info.name + (info.properties ? JSON.stringify(info.properties) : "");
+    if (this.geometryCache.has(cacheKey)) {
+        return this.geometryCache.get(cacheKey);
+    }
+    
+    let geom = new THREE.BoxGeometry(1, 1, 1);
+    
+    if (info.name) {
+        if (info.name.includes('slab')) {
+            const type = info.properties ? info.properties.type : 'bottom';
+            if (type === 'bottom') {
+                geom = new THREE.BoxGeometry(1, 0.5, 1);
+                geom.translate(0, -0.25, 0);
+            } else if (type === 'top') {
+                geom = new THREE.BoxGeometry(1, 0.5, 1);
+                geom.translate(0, 0.25, 0);
+            }
+        } else if (info.name.includes('stairs')) {
+            // Simplified stairs: ramp
+            const half = info.properties ? info.properties.half : 'bottom';
+            const shape = new THREE.Shape();
+            if (half === 'bottom') {
+                shape.moveTo(0.5, -0.5);
+                shape.lineTo(-0.5, -0.5);
+                shape.lineTo(-0.5, 0.5);
+                shape.lineTo(0.5, -0.5);
+            } else {
+                shape.moveTo(0.5, 0.5);
+                shape.lineTo(-0.5, 0.5);
+                shape.lineTo(-0.5, -0.5);
+                shape.lineTo(0.5, 0.5);
+            }
+            
+            const extrudeSettings = { depth: 1, bevelEnabled: false };
+            geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            // Center the geometry
+            geom.translate(0, 0, -0.5);
+            // Fix UV mapping for extrude
+            this.fixExtrudeUVs(geom);
+        } else if (info.name.includes('wall') || info.name.includes('fence')) {
+            geom = new THREE.BoxGeometry(0.3, 1, 0.3);
+        } else if (info.name.includes('carpet')) {
+            geom = new THREE.BoxGeometry(1, 0.0625, 1);
+            geom.translate(0, -0.46875, 0);
+        } else if (info.name.includes('snow')) {
+            const layers = info.properties && info.properties.layers ? parseInt(info.properties.layers) : 1;
+            const h = layers / 8;
+            geom = new THREE.BoxGeometry(1, h, 1);
+            geom.translate(0, -0.5 + h/2, 0);
+        } else if (info.name.includes('door') && !info.name.includes('trapdoor')) {
+            geom = new THREE.BoxGeometry(1, 1, 0.1875);
+            geom.translate(0, 0, 0.5 - 0.09375);
+        } else if (info.name.includes('trapdoor')) {
+            geom = new THREE.BoxGeometry(1, 0.1875, 1);
+            const half = info.properties ? info.properties.half : 'bottom';
+            if (half === 'bottom') geom.translate(0, -0.5 + 0.09375, 0);
+            else geom.translate(0, 0.5 - 0.09375, 0);
+        }
+    }
+    
+    this.geometryCache.set(cacheKey, geom);
+    return geom;
+  }
+
+  fixExtrudeUVs(geometry) {
+    const pos = geometry.attributes.position;
+    const uvs = geometry.attributes.uv;
+    for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i);
+        let y = pos.getY(i);
+        let z = pos.getZ(i);
+        // Simple planar UV mapping
+        uvs.setXY(i, x + 0.5, y + 0.5);
+    }
   }
 
   clear() {

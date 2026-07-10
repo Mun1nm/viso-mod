@@ -58,10 +58,10 @@ export class ExportLoader {
         if (x === undefined || y === undefined || z === undefined) continue;
 
         let id = item.id;
-        if (!id && item.p !== undefined) {
-          const pKey = String(item.p);
-          const paletteEntry = palette[pKey];
-          id = paletteEntry ? paletteEntry.name : 'minecraft:stone';
+        let pKeyStr = item.p !== undefined ? String(item.p) : null;
+        if (!id && pKeyStr !== null) {
+          const paletteEntry = palette[pKeyStr];
+          id = paletteEntry ? 'palette_' + pKeyStr : 'minecraft:stone';
         }
         if (!id) id = 'minecraft:stone';
 

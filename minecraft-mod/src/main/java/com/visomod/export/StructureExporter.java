@@ -50,14 +50,44 @@ public class StructureExporter {
 
                     String blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
 
+                    StringBuilder stateKeyBuilder = new StringBuilder(blockId);
+                    Map<String, String> properties = new HashMap<>();
+                    for (net.minecraft.world.level.block.state.properties.Property<?> prop : state.getProperties()) {
+                        String pName = prop.getName();
+                        String pVal = state.getValue(prop).toString();
+                        properties.put(pName, pVal);
+                        stateKeyBuilder.append(";").append(pName).append("=").append(pVal);
+                    }
+                    String stateKey = stateKeyBuilder.toString();
+
                     int paletteId;
-                    if (!blockToPaletteId.containsKey(blockId)) {
+                    if (!blockToPaletteId.containsKey(stateKey)) {
                         paletteId = nextPaletteId++;
-                        blockToPaletteId.put(blockId, paletteId);
+                        blockToPaletteId.put(stateKey, paletteId);
+                        
+                        String base64 = null;
+                        try {
+                            net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = net.minecraft.client.Minecraft.getInstance().getModelManager().getBlockStateModelSet().getParticleMaterial(state).sprite();
+                            if (sprite != null) {
+                                net.minecraft.resources.Identifier spriteId = sprite.contents().name();
+                                net.minecraft.resources.Identifier textureRes = net.minecraft.resources.Identifier.fromNamespaceAndPath(spriteId.getNamespace(), "textures/" + spriteId.getPath() + ".png");
+                                
+                                java.util.Optional<net.minecraft.server.packs.resources.Resource> resourceOpt = net.minecraft.client.Minecraft.getInstance().getResourceManager().getResource(textureRes);
+                                if (resourceOpt.isPresent()) {
+                                    try (java.io.InputStream is = resourceOpt.get().open()) {
+                                        byte[] bytes = is.readAllBytes();
+                                        base64 = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes);
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            com.visomod.VisoMod.LOGGER.error("Failed to extract texture for " + stateKey, e);
+                        }
+
                         exportData.palette.put(String.valueOf(paletteId),
-                                new ExportData.PaletteEntry(paletteId, blockId, new HashMap<>()));
+                                new ExportData.PaletteEntry(paletteId, blockId, properties, base64));
                     } else {
-                        paletteId = blockToPaletteId.get(blockId);
+                        paletteId = blockToPaletteId.get(stateKey);
                     }
 
                     exportData.blocks.add(new ExportData.BlockEntry(
