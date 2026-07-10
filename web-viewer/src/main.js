@@ -299,7 +299,8 @@ class App {
     if (!legendPanel || !legendList) return;
 
     if (!this.chunkRenderer.distinctColorsMode) {
-      legendPanel.classList.add('hidden');
+      legendList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 16px 0;">Ative as "Cores Distintas" no menu de Camadas para visualizar a legenda.</div>`;
+      legendPanel.classList.remove('hidden');
       return;
     }
 
