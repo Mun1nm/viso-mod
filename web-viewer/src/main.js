@@ -174,6 +174,11 @@ class App {
         this.is2DMode = e.target.checked;
         this.isoScene.set2DMode(this.is2DMode);
         this.chunkRenderer.set2DMode(this.is2DMode); // enables/disables shadow layer
+
+        const toggleSingleLayer = document.getElementById('toggle-single-layer');
+        if (shadowStyleContainer && toggleSingleLayer) {
+          shadowStyleContainer.style.display = (toggleSingleLayer.checked && this.is2DMode) ? 'block' : 'none';
+        }
         
         // Auto-switch to an appropriate default angle ONLY if the user hasn't explicitly
         // chosen one from the other group, or just reset to a nice default for the mode.
@@ -192,9 +197,14 @@ class App {
 
     // 10. Single Layer Only Checkbox
     const toggleSingleLayer = document.getElementById('toggle-single-layer');
+    const shadowStyleContainer = document.getElementById('shadow-style-container');
     if (toggleSingleLayer) {
       toggleSingleLayer.addEventListener('change', (e) => {
-        const stats = this.chunkRenderer.setSingleLayerOnly(e.target.checked);
+        const isSingleLayer = e.target.checked;
+        if (shadowStyleContainer) {
+          shadowStyleContainer.style.display = (isSingleLayer && this.is2DMode) ? 'block' : 'none';
+        }
+        const stats = this.chunkRenderer.setSingleLayerOnly(isSingleLayer);
         this.updateStatsUI(stats);
         this.updateLegendUI();
       });
@@ -205,6 +215,16 @@ class App {
     if (toggleDistinctColors) {
       toggleDistinctColors.addEventListener('change', (e) => {
         const stats = this.chunkRenderer.setDistinctColorsMode(e.target.checked);
+        this.updateStatsUI(stats);
+        this.updateLegendUI();
+      });
+    }
+
+    // 12. Shadow Style Dropdown
+    const selectShadowStyle = document.getElementById('select-shadow-style');
+    if (selectShadowStyle) {
+      selectShadowStyle.addEventListener('change', (e) => {
+        const stats = this.chunkRenderer.setShadowStyle(e.target.value);
         this.updateStatsUI(stats);
         this.updateLegendUI();
       });

@@ -32,6 +32,7 @@ export class ChunkRenderer {
 
     this.shadowMeshes = [];
     this.shadowMaterialCache = new Map();
+    this.shadowStyle = 'opacity';
   }
 
   packCoord(x, y, z) {
@@ -71,6 +72,13 @@ export class ChunkRenderer {
 
   setDistinctColorsMode(enabled) {
     this.distinctColorsMode = enabled;
+    this.shadowMaterialCache.clear();
+    return this.rebuildMeshes();
+  }
+
+  setShadowStyle(style) {
+    this.shadowStyle = style;
+    this.shadowMaterialCache.clear();
     return this.rebuildMeshes();
   }
 
@@ -195,7 +203,7 @@ export class ChunkRenderer {
   }
 
   getShadowMaterial(blockId) {
-    const key = blockId + "_" + this.distinctColorsMode;
+    const key = blockId + "_" + this.distinctColorsMode + "_" + this.shadowStyle;
     if (!this.shadowMaterialCache.has(key)) {
       const original = this.distinctColorsMode
         ? this.getDistinctMaterialForBlock(blockId)
@@ -204,9 +212,26 @@ export class ChunkRenderer {
       const cloneMaterial = (m) => {
         const c = m.clone();
         c.transparent = true;
-        c.opacity = 0.35;
         c.depthWrite = false;
         c.depthTest = false; // ensures visibility over background and ignores occlusion
+        
+        switch (this.shadowStyle) {
+          case 'wireframe':
+            c.wireframe = true;
+            c.opacity = 0.5;
+            break;
+          case 'tint':
+            c.color.setHex(0x1a2d45);
+            c.opacity = 0.7;
+            break;
+          case 'shrink':
+            c.opacity = 0.45;
+            break;
+          case 'opacity':
+          default:
+            c.opacity = 0.35;
+            break;
+        }
         return c;
       };
       
@@ -245,6 +270,11 @@ export class ChunkRenderer {
       for (let i = 0; i < instances.length; i++) {
         const b = instances[i];
         dummy.position.set(b.x, b.y, b.z);
+        if (this.shadowStyle === 'shrink') {
+          dummy.scale.set(0.85, 0.85, 0.85);
+        } else {
+          dummy.scale.set(1, 1, 1);
+        }
         dummy.updateMatrix();
         shadowMesh.setMatrixAt(i, dummy.matrix);
       }

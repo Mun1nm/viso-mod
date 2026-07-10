@@ -75,6 +75,38 @@ body {
   color: var(--text-main);
 }
 
+.slicer-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text-color);
+}
+
+.slicer-dropdown {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.glass-select {
+  width: 100%;
+  background: rgba(10, 13, 20, 0.6);
+  border: 1px solid var(--glass-border);
+  color: var(--text-color);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+}
+.glass-select option {
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
 .logo-text p {
   font-size: 11px;
   color: var(--text-muted);
