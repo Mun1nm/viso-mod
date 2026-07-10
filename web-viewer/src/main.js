@@ -19,7 +19,21 @@ class App {
     this.currentStructure = null;
 
     this.initUI();
-    this.loadSample('castle');
+
+    const embeddedEl = document.getElementById('embedded-structure-data');
+    if (embeddedEl && embeddedEl.textContent && !embeddedEl.textContent.includes('EMBEDDED_STRUCTURE_DATA')) {
+      try {
+        const rawJson = JSON.parse(embeddedEl.textContent);
+        const normalized = ExportLoader.normalizeStructure(rawJson);
+        this.loadStructureData(normalized);
+      } catch (err) {
+        console.error('[VisoMod] Erro ao ler JSON embutido no HTML:', err);
+        this.loadSample('castle');
+      }
+    } else {
+      this.loadSample('castle');
+    }
+
     this.animate();
   }
 
