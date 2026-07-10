@@ -120,34 +120,15 @@ public class StructureExporter {
                                             if (!textures.containsKey(texName)) {
                                                 try {
                                                     Object contentsObj = sprite.contents();
-                                                    java.lang.reflect.Field nativeImageArrayField = null;
+                                                    com.visomod.VisoMod.LOGGER.info("SpriteContents class: " + contentsObj.getClass().getName());
                                                     for (java.lang.reflect.Field f : contentsObj.getClass().getDeclaredFields()) {
-                                                        if (f.getType().isArray() && !f.getType().getComponentType().isPrimitive()) {
-                                                            nativeImageArrayField = f;
-                                                            break;
-                                                        }
+                                                        com.visomod.VisoMod.LOGGER.info("Field: " + f.getName() + " type: " + f.getType().getName());
                                                     }
-                                                    if (nativeImageArrayField != null) {
-                                                        nativeImageArrayField.setAccessible(true);
-                                                        Object[] mipLevels = (Object[]) nativeImageArrayField.get(contentsObj);
-                                                        if (mipLevels != null && mipLevels.length > 0) {
-                                                            Object nativeImage = mipLevels[0];
-                                                            java.lang.reflect.Method asByteArrayMethod = null;
-                                                            for (java.lang.reflect.Method m : nativeImage.getClass().getMethods()) {
-                                                                if (m.getParameterCount() == 0 && m.getReturnType() == byte[].class) {
-                                                                    asByteArrayMethod = m;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if (asByteArrayMethod != null) {
-                                                                byte[] bytes = (byte[]) asByteArrayMethod.invoke(nativeImage);
-                                                                String base64 = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes);
-                                                                textures.put(texName, base64);
-                                                            }
-                                                        }
+                                                    for (java.lang.reflect.Method m : contentsObj.getClass().getMethods()) {
+                                                        com.visomod.VisoMod.LOGGER.info("Method: " + m.getName() + " returnType: " + m.getReturnType().getName());
                                                     }
                                                 } catch (Exception e) {
-                                                    com.visomod.VisoMod.LOGGER.error("Failed to extract NativeImage for " + texName, e);
+                                                    com.visomod.VisoMod.LOGGER.error("Failed to dump NativeImage for " + texName, e);
                                                 }
                                             }
                                         }
