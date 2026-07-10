@@ -17,11 +17,27 @@ public class ExportWandItem extends Item {
         super(properties);
     }
 
+    private static long lastAttackTime = 0;
+    private static BlockPos lastAttackPos = null;
+    private static long lastUseTime = 0;
+    private static BlockPos lastUsePos = null;
+
     @Override
     public InteractionResult useOn(UseOnContext context) {
+        if (context.getHand() != InteractionHand.MAIN_HAND) {
+            return InteractionResult.PASS;
+        }
+
         Player player = context.getPlayer();
         if (player != null && !context.getLevel().isClientSide()) {
             BlockPos pos = context.getClickedPos();
+            long now = System.currentTimeMillis();
+            if (lastUsePos != null && lastUsePos.equals(pos) && (now - lastUseTime) < 250) {
+                return InteractionResult.SUCCESS;
+            }
+            lastUseTime = now;
+            lastUsePos = pos;
+
             SelectionManager.getInstance().setPosB(pos);
 
             int[] dims = SelectionManager.getInstance().getDimensions();
@@ -38,9 +54,20 @@ public class ExportWandItem extends Item {
         return InteractionResult.SUCCESS;
     }
 
-    public static InteractionResult onAttackBlock(Player player, BlockPos pos) {
+    public static InteractionResult onAttackBlock(Player player, InteractionHand hand, BlockPos pos) {
+        if (hand != InteractionHand.MAIN_HAND) {
+            return InteractionResult.PASS;
+        }
+
         if (player != null && player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ExportWandItem) {
             if (!player.level().isClientSide()) {
+                long now = System.currentTimeMillis();
+                if (lastAttackPos != null && lastAttackPos.equals(pos) && (now - lastAttackTime) < 250) {
+                    return InteractionResult.SUCCESS;
+                }
+                lastAttackTime = now;
+                lastAttackPos = pos;
+
                 SelectionManager.getInstance().setPosA(pos);
 
                 int[] dims = SelectionManager.getInstance().getDimensions();

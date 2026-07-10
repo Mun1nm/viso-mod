@@ -46,7 +46,7 @@ public class VisoMod implements ModInitializer {
 
         // Register left-click selection handler (AttackBlockCallback still works in 26.2)
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) ->
-                ExportWandItem.onAttackBlock(player, pos)
+                ExportWandItem.onAttackBlock(player, hand, pos)
         );
 
         // Register /exportar command

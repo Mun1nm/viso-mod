@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 const HIGH_CONTRAST_PALETTE = [
   '#FF2A6D', '#05D9E8', '#00FF66', '#FFB800', '#B800FF', '#FF5E00',
   '#00E5FF', '#FF6B6B', '#9B5DE5', '#F15BB5', '#00F5D4', '#4361EE',
