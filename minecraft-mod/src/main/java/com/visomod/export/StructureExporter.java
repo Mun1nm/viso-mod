@@ -120,12 +120,23 @@ public class StructureExporter {
                                             if (!textures.containsKey(texName)) {
                                                 try {
                                                     Object contentsObj = sprite.contents();
-                                                    com.visomod.VisoMod.LOGGER.info("SpriteContents class: " + contentsObj.getClass().getName());
+                                                    java.lang.reflect.Field nativeImageArrayField = null;
                                                     for (java.lang.reflect.Field f : contentsObj.getClass().getDeclaredFields()) {
-                                                        com.visomod.VisoMod.LOGGER.info("Field: " + f.getName() + " type: " + f.getType().getName());
+                                                        if (f.getType().isArray() && !f.getType().getComponentType().isPrimitive()) {
+                                                            nativeImageArrayField = f;
+                                                            break;
+                                                        }
                                                     }
-                                                    for (java.lang.reflect.Method m : contentsObj.getClass().getMethods()) {
-                                                        com.visomod.VisoMod.LOGGER.info("Method: " + m.getName() + " returnType: " + m.getReturnType().getName());
+                                                    if (nativeImageArrayField != null) {
+                                                        nativeImageArrayField.setAccessible(true);
+                                                        Object[] mipLevels = (Object[]) nativeImageArrayField.get(contentsObj);
+                                                        if (mipLevels != null && mipLevels.length > 0) {
+                                                            Object nativeImage = mipLevels[0];
+                                                            com.visomod.VisoMod.LOGGER.info("NativeImage class: " + nativeImage.getClass().getName());
+                                                            for (java.lang.reflect.Method m : nativeImage.getClass().getMethods()) {
+                                                                com.visomod.VisoMod.LOGGER.info("NI Method: " + m.getName() + " returnType: " + m.getReturnType().getName());
+                                                            }
+                                                        }
                                                     }
                                                 } catch (Exception e) {
                                                     com.visomod.VisoMod.LOGGER.error("Failed to dump NativeImage for " + texName, e);
