@@ -298,10 +298,23 @@ body {
   color: var(--text-muted);
 }
 
+.angle-group-wrapper {
+  display: flex;
+  gap: 16px;
+}
+
 .button-row {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.angle-icon {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+  opacity: 0.7;
 }
 
 .btn-iso, .btn-icon, .btn-text, .btn-toggle {

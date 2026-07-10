@@ -148,19 +148,27 @@
 
       <div class="control-group">
         <span class="control-group-title">Ângulo</span>
-        <!-- 3D: diagonal angles (shown in 3D mode) -->
-        <div class="button-row angle-group-3d">
-          <button class="btn-iso active" data-angle="45"  title="Nordeste (45°)">NE 45°</button>
-          <button class="btn-iso"        data-angle="135" title="Sudeste (135°)">SE 135°</button>
-          <button class="btn-iso"        data-angle="225" title="Sudoeste (225°)">SW 225°</button>
-          <button class="btn-iso"        data-angle="315" title="Noroeste (315°)">NW 315°</button>
-        </div>
-        <!-- 2D: cardinal angles (shown in 2D mode) -->
-        <div class="button-row angle-group-2d hidden">
-          <button class="btn-iso active" data-angle="0"   title="Norte (0°)">N 0°</button>
-          <button class="btn-iso"        data-angle="90"  title="Leste (90°)">L 90°</button>
-          <button class="btn-iso"        data-angle="180" title="Sul (180°)">S 180°</button>
-          <button class="btn-iso"        data-angle="270" title="Oeste (270°)">O 270°</button>
+        <div class="angle-group-wrapper">
+          <!-- 3D: diagonal angles -->
+          <div class="button-row angle-group-3d">
+            <span class="angle-icon" title="Visão Diagonal (Isométrica)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" transform="rotate(45 12 12)"/></svg>
+            </span>
+            <button class="btn-iso active" data-angle="45"  title="Nordeste (45°)">NE 45°</button>
+            <button class="btn-iso"        data-angle="135" title="Sudeste (135°)">SE 135°</button>
+            <button class="btn-iso"        data-angle="225" title="Sudoeste (225°)">SW 225°</button>
+            <button class="btn-iso"        data-angle="315" title="Noroeste (315°)">NW 315°</button>
+          </div>
+          <!-- 2D: cardinal angles -->
+          <div class="button-row angle-group-2d">
+            <span class="angle-icon" title="Visão Reta (Ortogonal)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+            </span>
+            <button class="btn-iso"        data-angle="0"   title="Norte (0°)">N 0°</button>
+            <button class="btn-iso"        data-angle="90"  title="Leste (90°)">L 90°</button>
+            <button class="btn-iso"        data-angle="180" title="Sul (180°)">S 180°</button>
+            <button class="btn-iso"        data-angle="270" title="Oeste (270°)">O 270°</button>
+          </div>
         </div>
       </div>
 

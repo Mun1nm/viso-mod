@@ -30,14 +30,8 @@ export class ChunkRenderer {
 
     this.geometry = new THREE.BoxGeometry(1, 1, 1);
 
-    // Shadow layer: semi-transparent ghost of the layer below in 2D single-layer mode
     this.shadowMeshes = [];
-    this.shadowMaterial = new THREE.MeshLambertMaterial({
-      color: 0x1a2d45,
-      transparent: true,
-      opacity: 0.28,
-      depthWrite: false,
-    });
+    this.shadowMaterialCache = new Map();
   }
 
   packCoord(x, y, z) {
@@ -200,6 +194,31 @@ export class ChunkRenderer {
     };
   }
 
+  getShadowMaterial(blockId) {
+    const key = blockId + "_" + this.distinctColorsMode;
+    if (!this.shadowMaterialCache.has(key)) {
+      const original = this.distinctColorsMode
+        ? this.getDistinctMaterialForBlock(blockId)
+        : this.textureManager.getMaterialForBlock(blockId);
+      
+      const cloneMaterial = (m) => {
+        const c = m.clone();
+        c.transparent = true;
+        c.opacity = 0.35;
+        c.depthWrite = false;
+        c.depthTest = false; // ensures visibility over background and ignores occlusion
+        return c;
+      };
+      
+      const shadow = Array.isArray(original) 
+        ? original.map(cloneMaterial)
+        : cloneMaterial(original);
+        
+      this.shadowMaterialCache.set(key, shadow);
+    }
+    return this.shadowMaterialCache.get(key);
+  }
+
   _buildShadowLayer(dummy) {
     const shadowY = this.currentSliceY - 1;
 
@@ -207,17 +226,18 @@ export class ChunkRenderer {
     const shadowBlocks = this.allBlocks.filter(b => b.y === shadowY);
     if (shadowBlocks.length === 0) return;
 
-    // Group by blockId for efficient instancing (keeps draw calls low)
+    // Group by blockId for efficient instancing
     const byBlock = new Map();
     for (const b of shadowBlocks) {
       if (!byBlock.has(b.id)) byBlock.set(b.id, []);
       byBlock.get(b.id).push(b);
     }
 
-    for (const [, instances] of byBlock.entries()) {
+    for (const [blockId, instances] of byBlock.entries()) {
       if (instances.length === 0) continue;
 
-      const shadowMesh = new THREE.InstancedMesh(this.geometry, this.shadowMaterial, instances.length);
+      const shadowMat = this.getShadowMaterial(blockId);
+      const shadowMesh = new THREE.InstancedMesh(this.geometry, shadowMat, instances.length);
       shadowMesh.castShadow = false;
       shadowMesh.receiveShadow = false;
       shadowMesh.renderOrder = -1; // render before main layer
@@ -268,6 +288,13 @@ export class ChunkRenderer {
       this.scene.remove(mesh);
     }
     this.shadowMeshes = [];
+    if (this.shadowMaterialCache) {
+      for (const mats of this.shadowMaterialCache.values()) {
+        if (Array.isArray(mats)) mats.forEach(m => m.dispose());
+        else mats.dispose();
+      }
+      this.shadowMaterialCache.clear();
+    }
     this.allBlocks = [];
     this.voxelGrid.clear();
   }
