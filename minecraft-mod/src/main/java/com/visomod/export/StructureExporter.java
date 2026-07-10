@@ -129,15 +129,50 @@ public class StructureExporter {
                                         net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = (net.minecraft.client.renderer.texture.TextureAtlasSprite) spriteObj;
                                         net.minecraft.resources.Identifier spriteId = sprite.contents().name();
                                         texName = spriteId.toString();
+                                        
+                                        float u0 = sprite.getU0();
+                                        float u1 = sprite.getU1();
+                                        float v0 = sprite.getV0();
+                                        float v1 = sprite.getV1();
+                                        
+                                        for(int i = 0; i < 4; i++) {
+                                            float originalU = uv[i*2];
+                                            float originalV = uv[i*2+1];
+                                            if (u1 != u0) uv[i*2] = (originalU - u0) / (u1 - u0);
+                                            if (v1 != v0) uv[i*2+1] = (originalV - v0) / (v1 - v0);
+                                        }
+                                        
                                         if (!textures.containsKey(texName)) {
-                                            net.minecraft.resources.Identifier textureRes = net.minecraft.resources.Identifier.fromNamespaceAndPath(spriteId.getNamespace(), "textures/" + spriteId.getPath() + ".png");
-                                            java.util.Optional<net.minecraft.server.packs.resources.Resource> resourceOpt = net.minecraft.client.Minecraft.getInstance().getResourceManager().getResource(textureRes);
-                                            if (resourceOpt.isPresent()) {
-                                                try (java.io.InputStream is = resourceOpt.get().open()) {
-                                                    byte[] bytes = is.readAllBytes();
-                                                    String base64 = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes);
-                                                    textures.put(texName, base64);
+                                            try {
+                                                Object contentsObj = sprite.contents();
+                                                java.lang.reflect.Field nativeImageArrayField = null;
+                                                for (java.lang.reflect.Field f : contentsObj.getClass().getDeclaredFields()) {
+                                                    if (f.getType().isArray() && f.getType().getName().contains("NativeImage")) {
+                                                        nativeImageArrayField = f;
+                                                        break;
+                                                    }
                                                 }
+                                                if (nativeImageArrayField != null) {
+                                                    nativeImageArrayField.setAccessible(true);
+                                                    Object[] mipLevels = (Object[]) nativeImageArrayField.get(contentsObj);
+                                                    if (mipLevels != null && mipLevels.length > 0) {
+                                                        Object nativeImage = mipLevels[0];
+                                                        java.lang.reflect.Method asByteArrayMethod = null;
+                                                        for (java.lang.reflect.Method m : nativeImage.getClass().getMethods()) {
+                                                            if (m.getParameterCount() == 0 && m.getReturnType() == byte[].class) {
+                                                                asByteArrayMethod = m;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (asByteArrayMethod != null) {
+                                                            byte[] bytes = (byte[]) asByteArrayMethod.invoke(nativeImage);
+                                                            String base64 = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes);
+                                                            textures.put(texName, base64);
+                                                        }
+                                                    }
+                                                }
+                                            } catch(Exception e) {
+                                                com.visomod.VisoMod.LOGGER.error("Failed to extract NativeImage for " + texName, e);
                                             }
                                         }
                                     }
