@@ -188,8 +188,8 @@ export class ChunkRenderer {
         dummy.position.set(b.x, b.y, b.z);
         dummy.rotation.set(0, 0, 0);
         
-        // Apply rotations based on facing/axis properties
-        if (info.properties) {
+        // Apply rotations based on facing/axis properties ONLY for procedural blocks
+        if (info.properties && !info.model) {
             const facing = info.properties.facing;
             const axis = info.properties.axis;
             if (facing) {
@@ -308,7 +308,8 @@ export class ChunkRenderer {
         dummy.position.set(b.x, b.y, b.z);
         dummy.rotation.set(0, 0, 0);
         
-        if (info.properties) {
+        // Apply rotations based on facing/axis properties ONLY for procedural blocks
+        if (info.properties && !info.model) {
             const facing = info.properties.facing;
             const axis = info.properties.axis;
             if (facing) {
