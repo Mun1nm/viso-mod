@@ -14,7 +14,7 @@ export class TextureManager {
     const info = this.mcDataService.getBlockInfo(blockId);
     let result = { materials: [], texMap: {} };
 
-    if (info.model && info.model.textures) {
+    if (info.model && info.model.textures && Object.keys(info.model.textures).length > 0) {
       let index = 0;
       for (const [texName, base64] of Object.entries(info.model.textures)) {
         const img = new Image();

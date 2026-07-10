@@ -395,7 +395,8 @@ export class ChunkRenderer {
             indices.push(vIndex, vIndex + 2, vIndex + 3);
             
             if (q.texture !== lastTex && lastTex !== null) {
-                geom.addGroup(groupStart * 3, groupCount * 3, texMap ? texMap[lastTex] : 0);
+                const matIndex = (texMap && texMap[lastTex] !== undefined) ? texMap[lastTex] : 0;
+                geom.addGroup(groupStart * 3, groupCount * 3, matIndex);
                 groupStart += groupCount;
                 groupCount = 0;
             }
@@ -406,7 +407,8 @@ export class ChunkRenderer {
         }
         
         if (groupCount > 0) {
-            geom.addGroup(groupStart * 3, groupCount * 3, texMap ? texMap[lastTex] : 0);
+            const matIndex = (texMap && texMap[lastTex] !== undefined) ? texMap[lastTex] : 0;
+            geom.addGroup(groupStart * 3, groupCount * 3, matIndex);
         }
 
         geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
