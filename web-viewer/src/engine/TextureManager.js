@@ -88,7 +88,7 @@ export class TextureManager {
 
     // Default 6 identical faces with pixel art texture
     const tex = this.createCanvasTexture(baseColor, this.getPatternType(blockId));
-    const mat = this.makeStandardMat(tex, info.transparent);
+    const mat = this.makeStandardMat(tex, info.transparent, true);
     return [mat, mat, mat, mat, mat, mat];
   }
 
@@ -103,13 +103,14 @@ export class TextureManager {
     return 'noise';
   }
 
-  makeStandardMat(texture, transparent = false) {
+  makeStandardMat(texture, transparent = false, isProcedural = false) {
     return new THREE.MeshStandardMaterial({
       map: texture,
       roughness: 0.82,
       metalness: 0.08,
       transparent: transparent,
-      opacity: transparent ? 0.65 : 1.0,
+      opacity: (transparent && isProcedural) ? 0.65 : 1.0,
+      alphaTest: 0.1,
       side: THREE.FrontSide
     });
   }
