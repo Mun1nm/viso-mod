@@ -17,17 +17,27 @@ export class ChunkRenderer {
     this.instancedMeshes = new Map(); // blockId -> InstancedMesh
     this.blockInstances = new Map();  // blockId -> array of visible BlockEntry
     this.allBlocks = [];
-    this.voxelGrid = new Map();       // "x,y,z" -> BlockEntry
+    this.voxelGrid = new Map();       // packed key -> BlockEntry
 
     this.currentSliceY = 999;
     this.enableCulling = true;
     this.singleLayerOnly = false;
     this.distinctColorsMode = false;
+    this.is2DMode = false;  // used to decide if shadow layer should be shown
 
     this.blockColorMap = new Map();
     this.distinctMaterials = new Map();
 
     this.geometry = new THREE.BoxGeometry(1, 1, 1);
+
+    // Shadow layer: semi-transparent ghost of the layer below in 2D single-layer mode
+    this.shadowMeshes = [];
+    this.shadowMaterial = new THREE.MeshLambertMaterial({
+      color: 0x1a2d45,
+      transparent: true,
+      opacity: 0.28,
+      depthWrite: false,
+    });
   }
 
   packCoord(x, y, z) {
@@ -70,6 +80,11 @@ export class ChunkRenderer {
     return this.rebuildMeshes();
   }
 
+  set2DMode(enabled) {
+    this.is2DMode = enabled;
+    return this.rebuildMeshes();
+  }
+
   getDistinctColorHex(blockId) {
     if (!this.blockColorMap.has(blockId)) {
       const idx = this.blockColorMap.size % HIGH_CONTRAST_PALETTE.length;
@@ -107,13 +122,19 @@ export class ChunkRenderer {
   }
 
   rebuildMeshes() {
-    // Remove existing meshes from scene
+    // Remove existing instanced meshes
     for (const mesh of this.instancedMeshes.values()) {
       this.scene.remove(mesh);
       mesh.dispose();
     }
     this.instancedMeshes.clear();
     this.blockInstances.clear();
+
+    // Remove existing shadow meshes
+    for (const mesh of this.shadowMeshes) {
+      this.scene.remove(mesh);
+    }
+    this.shadowMeshes = [];
 
     let totalVisible = 0;
     let totalCulled = 0;
@@ -166,12 +187,52 @@ export class ChunkRenderer {
       this.instancedMeshes.set(blockId, instMesh);
     }
 
+    // Shadow layer: only active in 2D + single-layer mode when there's a layer below
+    if (this.singleLayerOnly && this.is2DMode && this.currentSliceY > 0) {
+      this._buildShadowLayer(dummy);
+    }
+
     // Return render stats
     return {
       total: this.allBlocks.length,
       visible: totalVisible,
       culled: totalCulled
     };
+  }
+
+  _buildShadowLayer(dummy) {
+    const shadowY = this.currentSliceY - 1;
+
+    // Collect all blocks at shadowY (no culling — show everything)
+    const shadowBlocks = this.allBlocks.filter(b => b.y === shadowY);
+    if (shadowBlocks.length === 0) return;
+
+    // Group by blockId for efficient instancing (keeps draw calls low)
+    const byBlock = new Map();
+    for (const b of shadowBlocks) {
+      if (!byBlock.has(b.id)) byBlock.set(b.id, []);
+      byBlock.get(b.id).push(b);
+    }
+
+    for (const [, instances] of byBlock.entries()) {
+      if (instances.length === 0) continue;
+
+      const shadowMesh = new THREE.InstancedMesh(this.geometry, this.shadowMaterial, instances.length);
+      shadowMesh.castShadow = false;
+      shadowMesh.receiveShadow = false;
+      shadowMesh.renderOrder = -1; // render before main layer
+
+      for (let i = 0; i < instances.length; i++) {
+        const b = instances[i];
+        dummy.position.set(b.x, b.y, b.z);
+        dummy.updateMatrix();
+        shadowMesh.setMatrixAt(i, dummy.matrix);
+      }
+
+      shadowMesh.instanceMatrix.needsUpdate = true;
+      this.scene.add(shadowMesh);
+      this.shadowMeshes.push(shadowMesh);
+    }
   }
 
   isBlockFullyOccluded(b) {
@@ -203,6 +264,10 @@ export class ChunkRenderer {
     }
     this.instancedMeshes.clear();
     this.blockInstances.clear();
+    for (const mesh of this.shadowMeshes) {
+      this.scene.remove(mesh);
+    }
+    this.shadowMeshes = [];
     this.allBlocks = [];
     this.voxelGrid.clear();
   }

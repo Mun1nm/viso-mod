@@ -23,6 +23,9 @@ export class IsometricScene {
     this.currentAngleDeg = 45; // Classic Isometric NE
     this.targetCenter = new THREE.Vector3(0, 0, 0);
 
+    this.is2DMode = false;
+    this._gridVisible = true; // tracks user's grid preference
+
     // Renderer setup
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setSize(this.width, this.height);
@@ -35,6 +38,7 @@ export class IsometricScene {
 
     this.setupLights();
     this.setupFloorGrid();
+    this.setupOverlayGrid();
     this.setupInteraction();
 
     this.updateCameraPosition();
@@ -76,8 +80,68 @@ export class IsometricScene {
     this.scene.add(this.gridHelper);
   }
 
+  /**
+   * Overlay grid for 2D top-down mode: 1-unit-per-block grid rendered ABOVE blocks.
+   * Aligned to block edges so each cell = 1 Minecraft block.
+   * Starts hidden; shown when is2DMode=true and _gridVisible=true.
+   */
+  setupOverlayGrid() {
+    // Start with a default size; resized to structure on load
+    this.overlayGrid = this._makeOverlayGrid(60, 60, 0, 0, 0.51);
+    this.overlayGrid.visible = false;
+    this.scene.add(this.overlayGrid);
+  }
+
+  _makeOverlayGrid(width, depth, cx, cz, y) {
+    // Use 1-unit divisions so every cell maps to exactly 1 block
+    const sizeX = Math.max(width, 1);
+    const sizeZ = Math.max(depth, 1);
+    const size = Math.max(sizeX, sizeZ);
+
+    const grid = new THREE.GridHelper(size, size, 0xffffff, 0xffffff);
+    grid.material.opacity = 0.18;
+    grid.material.transparent = true;
+    // Shift so grid lines fall on block EDGES (not centers)
+    // Block at (0,y,0) occupies [-0.5..+0.5]. Edges at -0.5 and +0.5.
+    // GridHelper(N,N) centered at cx puts first line at cx - N/2.
+    // We want first line at -0.5, so cx = -0.5 + N/2 = (N-1)/2 = (width-1)/2. ✓
+    grid.position.set(cx, y, cz);
+    return grid;
+  }
+
+  /** Resize & reposition the overlay grid to match the loaded structure. */
+  setOverlayGridForStructure(dimensions, sliceY) {
+    const w = dimensions.x;
+    const d = dimensions.z;
+    const cx = (w - 1) / 2;
+    const cz = (d - 1) / 2;
+
+    // Dispose old, create new
+    this.scene.remove(this.overlayGrid);
+    this.overlayGrid.geometry.dispose();
+    this.overlayGrid.material.dispose();
+
+    this.overlayGrid = this._makeOverlayGrid(w, d, cx, cz, sliceY + 0.51);
+    this.overlayGrid.visible = this.is2DMode && this._gridVisible;
+    this.scene.add(this.overlayGrid);
+  }
+
+  /** Move overlay grid to sit just above the given Y layer. */
+  setOverlayGridY(y) {
+    if (this.overlayGrid) {
+      this.overlayGrid.position.y = y + 0.51;
+    }
+  }
+
   toggleGrid(show) {
-    this.gridHelper.visible = show;
+    this._gridVisible = show;
+    if (this.is2DMode) {
+      // In 2D mode: toggle the block-aligned overlay grid
+      this.overlayGrid.visible = show;
+    } else {
+      // In 3D mode: toggle the floor grid
+      this.gridHelper.visible = show;
+    }
   }
 
   toggleShadows(show) {
@@ -91,6 +155,15 @@ export class IsometricScene {
 
   set2DMode(is2D) {
     this.is2DMode = is2D;
+    if (is2D) {
+      // Switch from floor grid → overlay grid
+      this.gridHelper.visible = false;
+      this.overlayGrid.visible = this._gridVisible;
+    } else {
+      // Switch from overlay grid → floor grid
+      this.overlayGrid.visible = false;
+      this.gridHelper.visible = this._gridVisible;
+    }
     this.updateCameraPosition();
   }
 

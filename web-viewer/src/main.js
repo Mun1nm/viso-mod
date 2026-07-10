@@ -17,6 +17,7 @@ class App {
     this.inspector = new RaycastInspector(this.isoScene, this.chunkRenderer, this.mcDataService);
 
     this.currentStructure = null;
+    this.is2DMode = false; // kept in sync for chunkRenderer
 
     this.initUI();
 
@@ -176,19 +177,18 @@ class App {
 
     if (toggleViewMode) {
       toggleViewMode.addEventListener('change', (e) => {
-        const is2D = e.target.checked;
-        this.isoScene.set2DMode(is2D);
+        this.is2DMode = e.target.checked;
+        this.isoScene.set2DMode(this.is2DMode);
+        this.chunkRenderer.set2DMode(this.is2DMode); // enables/disables shadow layer
 
-        if (is2D) {
+        if (this.is2DMode) {
           group3d.classList.add('hidden');
           group2d.classList.remove('hidden');
-          // Reset 2D active button to 0° and apply it
           group2d.querySelectorAll('.btn-iso').forEach((b, i) => b.classList.toggle('active', i === 0));
           this.isoScene.setIsometricAngle(0);
         } else {
           group2d.classList.add('hidden');
           group3d.classList.remove('hidden');
-          // Reset 3D active button to 45° and apply it
           group3d.querySelectorAll('.btn-iso').forEach((b, i) => b.classList.toggle('active', i === 0));
           this.isoScene.setIsometricAngle(45);
         }
@@ -253,6 +253,9 @@ class App {
     // Center scene isometric camera
     this.isoScene.centerOnStructure(dims);
 
+    // Set up block-aligned overlay grid for 2D mode
+    this.isoScene.setOverlayGridForStructure(dims, maxY);
+
     // Update Dimensions UI stat
     document.getElementById('stat-dimensions').textContent = `${dims.x} × ${dims.y} × ${dims.z}`;
     this.updateStatsUI(stats);
@@ -268,6 +271,8 @@ class App {
   updateYSlice(sliceY) {
     this.yLabel.textContent = `Y: ${sliceY}`;
     const stats = this.chunkRenderer.setSliceY(sliceY);
+    // Move overlay grid to follow the current layer in 2D mode
+    this.isoScene.setOverlayGridY(sliceY);
     this.updateStatsUI(stats);
     this.updateLegendUI();
   }
