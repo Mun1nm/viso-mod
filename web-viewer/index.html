@@ -148,7 +148,15 @@
 
       <div class="control-group">
         <span class="control-group-title">Ângulo</span>
-        <div class="button-row">
+        <!-- 3D: diagonal angles (shown in 3D mode) -->
+        <div class="button-row angle-group-3d">
+          <button class="btn-iso active" data-angle="45"  title="Nordeste (45°)">NE 45°</button>
+          <button class="btn-iso"        data-angle="135" title="Sudeste (135°)">SE 135°</button>
+          <button class="btn-iso"        data-angle="225" title="Sudoeste (225°)">SW 225°</button>
+          <button class="btn-iso"        data-angle="315" title="Noroeste (315°)">NW 315°</button>
+        </div>
+        <!-- 2D: cardinal angles (shown in 2D mode) -->
+        <div class="button-row angle-group-2d hidden">
           <button class="btn-iso active" data-angle="0"   title="Norte (0°)">N 0°</button>
           <button class="btn-iso"        data-angle="90"  title="Leste (90°)">L 90°</button>
           <button class="btn-iso"        data-angle="180" title="Sul (180°)">S 180°</button>

@@ -124,18 +124,22 @@ class App {
       this.updateStatsUI(stats);
     });
 
-    // 6. Isometric Angle Buttons (0/90/180/270)
-    const isoButtons = document.querySelectorAll('.btn-iso');
-    isoButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        isoButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const angle = parseInt(btn.dataset.angle, 10);
-        this.isoScene.setIsometricAngle(angle);
+    // 6. Isometric Angle Buttons — two groups (3D diagonal / 2D cardinal)
+    const setupAngleGroup = (selector) => {
+      const btns = document.querySelectorAll(`${selector} .btn-iso`);
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.isoScene.setIsometricAngle(parseInt(btn.dataset.angle, 10));
+        });
       });
-    });
-    // Default angle is 0 now
-    this.isoScene.setIsometricAngle(0);
+    };
+    setupAngleGroup('.angle-group-3d');
+    setupAngleGroup('.angle-group-2d');
+
+    // Start in 3D mode at 45°
+    this.isoScene.setIsometricAngle(45);
 
     // 7. Camera Controls
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
@@ -165,14 +169,29 @@ class App {
       this.isoScene.toggleShadows(btnShadows.classList.contains('active'));
     });
 
-    // 9. Vision Mode Switch (3D <-> 2D)
+    // 9. Vision Mode Switch (3D <-> 2D) — also swaps angle button groups
     const toggleViewMode = document.getElementById('toggle-view-mode');
+    const group3d = document.querySelector('.angle-group-3d');
+    const group2d = document.querySelector('.angle-group-2d');
+
     if (toggleViewMode) {
       toggleViewMode.addEventListener('change', (e) => {
         const is2D = e.target.checked;
         this.isoScene.set2DMode(is2D);
-        // In 2D mode, hide angle buttons as they rotate orthogonally
-        // (they still work via setIsometricAngle)
+
+        if (is2D) {
+          group3d.classList.add('hidden');
+          group2d.classList.remove('hidden');
+          // Reset 2D active button to 0° and apply it
+          group2d.querySelectorAll('.btn-iso').forEach((b, i) => b.classList.toggle('active', i === 0));
+          this.isoScene.setIsometricAngle(0);
+        } else {
+          group2d.classList.add('hidden');
+          group3d.classList.remove('hidden');
+          // Reset 3D active button to 45° and apply it
+          group3d.querySelectorAll('.btn-iso').forEach((b, i) => b.classList.toggle('active', i === 0));
+          this.isoScene.setIsometricAngle(45);
+        }
       });
     }
 
