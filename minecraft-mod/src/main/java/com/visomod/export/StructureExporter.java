@@ -18,7 +18,7 @@ import java.util.zip.GZIPOutputStream;
 
 public class StructureExporter {
 
-    public static int debugCount = 0;
+
 
     public static ExportResult exportSelection(Level world, String fileName) throws IOException {
         SelectionManager sm = SelectionManager.getInstance();
@@ -95,25 +95,11 @@ public class StructureExporter {
                                             qPos[i * 3 + 2] = vertexPos.z();
 
                                             long packed = q.packedUV(i);
-                                            float rawU = Float.intBitsToFloat((int) (packed & 0xFFFFFFFFL));
-                                            float rawV = Float.intBitsToFloat((int) (packed >>> 32));
+                                            float rawV = Float.intBitsToFloat((int) (packed & 0xFFFFFFFFL));
+                                            float rawU = Float.intBitsToFloat((int) (packed >>> 32));
                                             uv[i * 2] = rawU;
                                             uv[i * 2 + 1] = rawV;
-                                            
-                                            if (debugCount < 40) {
-                                                debugCount++;
-                                                com.visomod.VisoMod.LOGGER.info("Vertex " + i + " -> packed: " + packed + ", rawU: " + rawU + ", rawV: " + rawV);
-                                                int[] v = null;
-                                                for (java.lang.reflect.Method m : q.getClass().getMethods()) {
-                                                    if (m.getReturnType() == int[].class && m.getParameterCount() == 0) {
-                                                        try { v = (int[]) m.invoke(q); break; } catch(Exception e) {}
-                                                    }
-                                                }
-                                                if (v != null && v.length >= i * 8 + 6) {
-                                                    com.visomod.VisoMod.LOGGER.info("  v[4]=" + v[i * 8 + 4] + " (float: " + Float.intBitsToFloat(v[i * 8 + 4]) + ")");
-                                                    com.visomod.VisoMod.LOGGER.info("  v[5]=" + v[i * 8 + 5] + " (float: " + Float.intBitsToFloat(v[i * 8 + 5]) + ")");
-                                                }
-                                            }
+
                                         }
 
                                         net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = q.materialInfo() != null ? q.materialInfo().sprite() : null;
