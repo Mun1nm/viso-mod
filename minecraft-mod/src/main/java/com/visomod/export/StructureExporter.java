@@ -68,118 +68,91 @@ public class StructureExporter {
                         java.util.List<ExportData.QuadData> quads = new java.util.ArrayList<>();
                         Map<String, String> textures = new HashMap<>();
                         try {
-                            Object shaper = net.minecraft.client.Minecraft.getInstance().getModelManager().getBlockStateModelSet();
-                            java.lang.reflect.Method getModelMethod = null;
-                            for (java.lang.reflect.Method m : shaper.getClass().getMethods()) {
-                                if (m.getParameterCount() == 1 && m.getParameterTypes()[0].isInstance(state) && !java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
-                                    if (m.getReturnType().isInterface()) {
-                                        getModelMethod = m;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (getModelMethod == null) throw new IllegalStateException("Could not find getBlockModel method");
-                            Object model = getModelMethod.invoke(shaper, state);
-                            
+                            net.minecraft.client.renderer.block.BlockStateModelSet modelSet = net.minecraft.client.Minecraft.getInstance().getModelManager().getBlockStateModelSet();
+                            net.minecraft.client.renderer.block.dispatch.BlockStateModel stateModel = modelSet.get(state);
+                            java.util.List<net.minecraft.client.renderer.block.dispatch.BlockStateModelPart> parts = new java.util.ArrayList<>();
+                            stateModel.collectParts(net.minecraft.util.RandomSource.create(42), parts);
+
                             java.util.List<net.minecraft.core.Direction> dirs = new java.util.ArrayList<>();
                             dirs.add(null);
                             for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
                                 dirs.add(d);
                             }
-                            
-                            java.lang.reflect.Method getQuadsMethod = null;
-                            for (java.lang.reflect.Method m : model.getClass().getMethods()) {
-                                if (m.getParameterCount() == 3 && !java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
-                                    if (java.util.List.class.isAssignableFrom(m.getReturnType())) {
-                                        getQuadsMethod = m;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (getQuadsMethod == null) throw new IllegalStateException("Could not find getQuads method");
-                            
-                            for (net.minecraft.core.Direction d : dirs) {
-                                java.util.List<?> bakedQuads = (java.util.List<?>) getQuadsMethod.invoke(model, state, d, net.minecraft.util.RandomSource.create(42));
-                                for (Object q : bakedQuads) {
-                                    java.lang.reflect.Method getVerticesMethod = null;
-                                    java.lang.reflect.Method getSpriteMethod = null;
-                                    for (java.lang.reflect.Method m : q.getClass().getMethods()) {
-                                        if (m.getParameterCount() == 0 && !java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
-                                            Class<?> ret = m.getReturnType();
-                                            if (ret == int[].class) {
-                                                getVerticesMethod = m;
-                                            } else if (!ret.isPrimitive() && !ret.isArray() && !ret.isEnum() && ret != String.class && ret != Class.class) {
-                                                getSpriteMethod = m;
+
+                            for (net.minecraft.client.renderer.block.dispatch.BlockStateModelPart part : parts) {
+                                for (net.minecraft.core.Direction d : dirs) {
+                                    java.util.List<net.minecraft.client.resources.model.geometry.BakedQuad> bakedQuads = part.getQuads(d);
+                                    for (net.minecraft.client.resources.model.geometry.BakedQuad q : bakedQuads) {
+                                        float[] qPos = new float[12];
+                                        float[] uv = new float[8];
+
+                                        for (int i = 0; i < 4; i++) {
+                                            org.joml.Vector3fc vertexPos = q.position(i);
+                                            qPos[i * 3] = vertexPos.x();
+                                            qPos[i * 3 + 1] = vertexPos.y();
+                                            qPos[i * 3 + 2] = vertexPos.z();
+
+                                            long packed = q.packedUV(i);
+                                            float rawU = Float.intBitsToFloat((int) (packed & 0xFFFFFFFFL));
+                                            float rawV = Float.intBitsToFloat((int) (packed >>> 32));
+                                            uv[i * 2] = rawU;
+                                            uv[i * 2 + 1] = rawV;
+                                        }
+
+                                        net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = q.materialInfo() != null ? q.materialInfo().sprite() : null;
+                                        String texName = "default";
+                                        if (sprite != null) {
+                                            net.minecraft.resources.Identifier spriteId = sprite.contents().name();
+                                            texName = spriteId.toString();
+
+                                            float u0 = sprite.getU0();
+                                            float u1 = sprite.getU1();
+                                            float v0 = sprite.getV0();
+                                            float v1 = sprite.getV1();
+
+                                            for (int i = 0; i < 4; i++) {
+                                                float originalU = uv[i * 2];
+                                                float originalV = uv[i * 2 + 1];
+                                                if (u1 != u0) uv[i * 2] = (originalU - u0) / (u1 - u0);
+                                                if (v1 != v0) uv[i * 2 + 1] = (originalV - v0) / (v1 - v0);
                                             }
-                                        }
-                                    }
-                                    
-                                    int[] data = (int[]) getVerticesMethod.invoke(q);
-                                    float[] qPos = new float[12];
-                                    float[] uv = new float[8];
-                                    for(int i = 0; i < 4; i++) {
-                                        int offset = i * 8;
-                                        qPos[i*3] = Float.intBitsToFloat(data[offset]);
-                                        qPos[i*3+1] = Float.intBitsToFloat(data[offset+1]);
-                                        qPos[i*3+2] = Float.intBitsToFloat(data[offset+2]);
-                                        uv[i*2] = Float.intBitsToFloat(data[offset+4]);
-                                        uv[i*2+1] = Float.intBitsToFloat(data[offset+5]);
-                                    }
-                                    
-                                    Object spriteObj = getSpriteMethod != null ? getSpriteMethod.invoke(q) : null;
-                                    String texName = "default";
-                                    if (spriteObj != null) {
-                                        net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = (net.minecraft.client.renderer.texture.TextureAtlasSprite) spriteObj;
-                                        net.minecraft.resources.Identifier spriteId = sprite.contents().name();
-                                        texName = spriteId.toString();
-                                        
-                                        float u0 = sprite.getU0();
-                                        float u1 = sprite.getU1();
-                                        float v0 = sprite.getV0();
-                                        float v1 = sprite.getV1();
-                                        
-                                        for(int i = 0; i < 4; i++) {
-                                            float originalU = uv[i*2];
-                                            float originalV = uv[i*2+1];
-                                            if (u1 != u0) uv[i*2] = (originalU - u0) / (u1 - u0);
-                                            if (v1 != v0) uv[i*2+1] = (originalV - v0) / (v1 - v0);
-                                        }
-                                        
-                                        if (!textures.containsKey(texName)) {
-                                            try {
-                                                Object contentsObj = sprite.contents();
-                                                java.lang.reflect.Field nativeImageArrayField = null;
-                                                for (java.lang.reflect.Field f : contentsObj.getClass().getDeclaredFields()) {
-                                                    if (f.getType().isArray() && !f.getType().getComponentType().isPrimitive()) {
-                                                        nativeImageArrayField = f;
-                                                        break;
+
+                                            if (!textures.containsKey(texName)) {
+                                                try {
+                                                    Object contentsObj = sprite.contents();
+                                                    java.lang.reflect.Field nativeImageArrayField = null;
+                                                    for (java.lang.reflect.Field f : contentsObj.getClass().getDeclaredFields()) {
+                                                        if (f.getType().isArray() && !f.getType().getComponentType().isPrimitive()) {
+                                                            nativeImageArrayField = f;
+                                                            break;
+                                                        }
                                                     }
-                                                }
-                                                if (nativeImageArrayField != null) {
-                                                    nativeImageArrayField.setAccessible(true);
-                                                    Object[] mipLevels = (Object[]) nativeImageArrayField.get(contentsObj);
-                                                    if (mipLevels != null && mipLevels.length > 0) {
-                                                        Object nativeImage = mipLevels[0];
-                                                        java.lang.reflect.Method asByteArrayMethod = null;
-                                                        for (java.lang.reflect.Method m : nativeImage.getClass().getMethods()) {
-                                                            if (m.getParameterCount() == 0 && m.getReturnType() == byte[].class) {
-                                                                asByteArrayMethod = m;
-                                                                break;
+                                                    if (nativeImageArrayField != null) {
+                                                        nativeImageArrayField.setAccessible(true);
+                                                        Object[] mipLevels = (Object[]) nativeImageArrayField.get(contentsObj);
+                                                        if (mipLevels != null && mipLevels.length > 0) {
+                                                            Object nativeImage = mipLevels[0];
+                                                            java.lang.reflect.Method asByteArrayMethod = null;
+                                                            for (java.lang.reflect.Method m : nativeImage.getClass().getMethods()) {
+                                                                if (m.getParameterCount() == 0 && m.getReturnType() == byte[].class) {
+                                                                    asByteArrayMethod = m;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if (asByteArrayMethod != null) {
+                                                                byte[] bytes = (byte[]) asByteArrayMethod.invoke(nativeImage);
+                                                                String base64 = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes);
+                                                                textures.put(texName, base64);
                                                             }
                                                         }
-                                                        if (asByteArrayMethod != null) {
-                                                            byte[] bytes = (byte[]) asByteArrayMethod.invoke(nativeImage);
-                                                            String base64 = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes);
-                                                            textures.put(texName, base64);
-                                                        }
                                                     }
+                                                } catch (Exception e) {
+                                                    com.visomod.VisoMod.LOGGER.error("Failed to extract NativeImage for " + texName, e);
                                                 }
-                                            } catch(Exception e) {
-                                                com.visomod.VisoMod.LOGGER.error("Failed to extract NativeImage for " + texName, e);
                                             }
                                         }
+                                        quads.add(new ExportData.QuadData(qPos, uv, texName));
                                     }
-                                    quads.add(new ExportData.QuadData(qPos, uv, texName));
                                 }
                             }
                         } catch (Exception e) {
