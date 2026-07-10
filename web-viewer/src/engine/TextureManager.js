@@ -12,8 +12,30 @@ export class TextureManager {
     }
 
     const info = this.mcDataService.getBlockInfo(blockId);
-    let materials;
-    if (info.base64Texture) {
+    let result = { materials: [], texMap: {} };
+
+    if (info.model && info.model.textures) {
+      let index = 0;
+      for (const [texName, base64] of Object.entries(info.model.textures)) {
+        const img = new Image();
+        img.src = base64;
+        const tex = new THREE.Texture(img);
+        img.onload = () => { tex.needsUpdate = true; };
+        tex.magFilter = THREE.NearestFilter;
+        tex.minFilter = THREE.NearestFilter;
+        tex.colorSpace = THREE.SRGBColorSpace;
+        
+        // Fix UV mapping vertically because Minecraft UVs have V pointing down, 
+        // while ThreeJS has V pointing up.
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.flipY = false; 
+
+        const mat = this.makeStandardMat(tex, info.transparent);
+        result.materials.push(mat);
+        result.texMap[texName] = index++;
+      }
+    } else if (info.base64Texture) {
       const img = new Image();
       img.src = info.base64Texture;
       const tex = new THREE.Texture(img);
@@ -21,14 +43,15 @@ export class TextureManager {
       tex.magFilter = THREE.NearestFilter;
       tex.minFilter = THREE.NearestFilter;
       tex.colorSpace = THREE.SRGBColorSpace;
+      tex.flipY = false;
       const mat = this.makeStandardMat(tex, info.transparent);
-      materials = [mat, mat, mat, mat, mat, mat];
+      result.materials = [mat, mat, mat, mat, mat, mat];
     } else {
-      materials = this.generateBlockMaterials(blockId, info);
+      result.materials = this.generateBlockMaterials(blockId, info);
     }
     
-    this.materialCache.set(blockId, materials);
-    return materials;
+    this.materialCache.set(blockId, result);
+    return result;
   }
 
   generateBlockMaterials(blockId, info) {

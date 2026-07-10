@@ -169,11 +169,14 @@ export class ChunkRenderer {
       if (instances.length === 0) continue;
       
       const info = this.mcDataService.getBlockInfo(blockId);
-      const materials = this.distinctColorsMode
-        ? this.getDistinctMaterialForBlock(blockId)
+      const texData = this.distinctColorsMode
+        ? { materials: [this.getDistinctMaterialForBlock(blockId)], texMap: null }
         : this.textureManager.getMaterialForBlock(blockId);
 
-      const geometry = this.getGeometryForBlock(info);
+      const materials = texData.materials;
+      const texMap = texData.texMap;
+
+      const geometry = this.getGeometryForBlock(info, texMap);
 
       const instMesh = new THREE.InstancedMesh(geometry, materials, instances.length);
       instMesh.castShadow = true;
@@ -226,9 +229,11 @@ export class ChunkRenderer {
   getShadowMaterial(blockId) {
     const key = blockId + "_" + this.distinctColorsMode + "_" + this.shadowStyle;
     if (!this.shadowMaterialCache.has(key)) {
-      const original = this.distinctColorsMode
-        ? this.getDistinctMaterialForBlock(blockId)
+      const originalData = this.distinctColorsMode
+        ? { materials: [this.getDistinctMaterialForBlock(blockId)] }
         : this.textureManager.getMaterialForBlock(blockId);
+      
+      const original = originalData.materials;
       
       const cloneMaterial = (m) => {
         const c = m.clone();
@@ -258,7 +263,7 @@ export class ChunkRenderer {
       
       const shadow = Array.isArray(original) 
         ? original.map(cloneMaterial)
-        : cloneMaterial(original);
+        : [cloneMaterial(original)];
         
       this.shadowMaterialCache.set(key, shadow);
     }
@@ -359,67 +364,64 @@ export class ChunkRenderer {
     return true;
   }
 
-  getGeometryForBlock(info) {
-    const cacheKey = info.name + (info.properties ? JSON.stringify(info.properties) : "") + (info.shapes ? JSON.stringify(info.shapes) : "");
+  getGeometryForBlock(info, texMap) {
+    const cacheKey = info.name + (info.properties ? JSON.stringify(info.properties) : "") + (info.model ? 'model' : '');
     if (this.geometryCache.has(cacheKey)) {
         return this.geometryCache.get(cacheKey);
     }
     
-    let geom = new THREE.BoxGeometry(1, 1, 1);
+    let geom;
 
-    if (info.shapes && info.shapes.length > 0) {
-        const boxGeoms = [];
-        for (const box of info.shapes) {
-            const width = box.max[0] - box.min[0];
-            const height = box.max[1] - box.min[1];
-            const depth = box.max[2] - box.min[2];
+    if (info.model && info.model.quads && info.model.quads.length > 0) {
+        geom = new THREE.BufferGeometry();
+        const positions = [];
+        const uvs = [];
+        const indices = [];
+        
+        let vIndex = 0;
+        let lastTex = null;
+        let groupStart = 0;
+        let groupCount = 0;
+
+        for (const q of info.model.quads) {
+            // Apply Minecraft space (-X, Y, -Z) to ThreeJS space by translating by -0.5 on each axis to center block at (0,0,0)
+            for (let i = 0; i < 4; i++) {
+                positions.push(q.pos[i*3] - 0.5, q.pos[i*3+1] - 0.5, q.pos[i*3+2] - 0.5);
+                uvs.push(q.uv[i*2], q.uv[i*2+1]);
+            }
             
-            if (width <= 0 || height <= 0 || depth <= 0) continue;
+            // Standard quad triangulation: 0,1,2 and 0,2,3
+            indices.push(vIndex, vIndex + 1, vIndex + 2);
+            indices.push(vIndex, vIndex + 2, vIndex + 3);
             
-            const bGeom = new THREE.BoxGeometry(width, height, depth);
-            // Translate center from origin to the center of the bounding box
-            const cx = box.min[0] + width / 2.0;
-            const cy = box.min[1] + height / 2.0;
-            const cz = box.min[2] + depth / 2.0;
+            if (q.texture !== lastTex && lastTex !== null) {
+                geom.addGroup(groupStart * 3, groupCount * 3, texMap ? texMap[lastTex] : 0);
+                groupStart += groupCount;
+                groupCount = 0;
+            }
             
-            // In Three.js, box center is (0,0,0). Block's center should be at (0,0,0) in grid, 
-            // but Minecraft AABBs are from (0,0,0) to (1,1,1).
-            // So we subtract 0.5 to center the AABB around 0,0,0 in ThreeJS local space.
-            bGeom.translate(cx - 0.5, cy - 0.5, cz - 0.5);
-            boxGeoms.push(bGeom);
+            lastTex = q.texture;
+            groupCount += 2; // 2 triangles
+            vIndex += 4;
         }
         
-        if (boxGeoms.length > 0) {
-            if (boxGeoms.length === 1) {
-                geom = boxGeoms[0];
-            } else {
-                geom = mergeGeometries(boxGeoms, false);
-            }
+        if (groupCount > 0) {
+            geom.addGroup(groupStart * 3, groupCount * 3, texMap ? texMap[lastTex] : 0);
         }
-    } else if (info.name) {
-        // Fallback for special blocks that don't have accurate collision shapes but need visual shaping
-        // Note: With shapes extraction, most of this fallback is unnecessary for collision-based blocks!
-        if (info.name.includes('slab')) {
-            const type = info.properties ? info.properties.type : 'bottom';
-            if (type === 'bottom') {
-                geom = new THREE.BoxGeometry(1, 0.5, 1);
-                geom.translate(0, -0.25, 0);
-            } else if (type === 'top') {
-                geom = new THREE.BoxGeometry(1, 0.5, 1);
-                geom.translate(0, 0.25, 0);
+
+        geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geom.setIndex(indices);
+        geom.computeVertexNormals();
+
+    } else {
+        geom = new THREE.BoxGeometry(1, 1, 1);
+        if (info.name && (info.name.includes('slab') || info.name.includes('carpet') || info.name.includes('snow') || info.name.includes('door') || info.name.includes('trapdoor') || info.name.includes('stairs'))) {
+            // Fallbacks for when model is not available or extracted
+            if (info.name.includes('slab')) {
+                const type = info.properties ? info.properties.type : 'bottom';
+                if (type === 'bottom') geom.translate(0, -0.25, 0);
             }
-        } else if (info.name.includes('carpet')) {
-            geom = new THREE.BoxGeometry(1, 0.0625, 1);
-            geom.translate(0, -0.46875, 0);
-        } else if (info.name.includes('snow')) {
-            const layers = info.properties && info.properties.layers ? parseInt(info.properties.layers) : 1;
-            const h = layers / 8;
-            geom = new THREE.BoxGeometry(1, h, 1);
-            geom.translate(0, -0.5 + h/2, 0);
-        } else if (info.name.includes('stairs') || info.name.includes('wall') || info.name.includes('fence') || info.name.includes('door')) {
-            // Se chegou aqui é porque nao tem shape (exemplo: mod nao exportou ou algo falhou)
-            // Vamos apenas usar bloco cheio pra n quebrar
-            geom = new THREE.BoxGeometry(1, 1, 1);
         }
     }
     

@@ -65,49 +65,96 @@ public class StructureExporter {
                         paletteId = nextPaletteId++;
                         blockToPaletteId.put(stateKey, paletteId);
                         
-                        String base64 = null;
+                        java.util.List<ExportData.QuadData> quads = new java.util.ArrayList<>();
+                        Map<String, String> textures = new HashMap<>();
                         try {
-                            net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = net.minecraft.client.Minecraft.getInstance().getModelManager().getBlockStateModelSet().getParticleMaterial(state).sprite();
-                            if (sprite != null) {
-                                net.minecraft.resources.Identifier spriteId = sprite.contents().name();
-                                net.minecraft.resources.Identifier textureRes = net.minecraft.resources.Identifier.fromNamespaceAndPath(spriteId.getNamespace(), "textures/" + spriteId.getPath() + ".png");
-                                
-                                java.util.Optional<net.minecraft.server.packs.resources.Resource> resourceOpt = net.minecraft.client.Minecraft.getInstance().getResourceManager().getResource(textureRes);
-                                if (resourceOpt.isPresent()) {
-                                    try (java.io.InputStream is = resourceOpt.get().open()) {
-                                        byte[] bytes = is.readAllBytes();
-                                        base64 = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes);
+                            Object shaper = net.minecraft.client.Minecraft.getInstance().getModelManager().getBlockStateModelSet();
+                            java.lang.reflect.Method getModelMethod = null;
+                            for (java.lang.reflect.Method m : shaper.getClass().getMethods()) {
+                                if (m.getParameterCount() == 1 && m.getParameterTypes()[0].getName().contains("BlockState") && !java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
+                                    if (!m.getReturnType().getName().contains("Sprite") && !m.getReturnType().getName().contains("Material") && !m.getReturnType().getName().contains("Icon")) {
+                                        getModelMethod = m;
+                                        break;
                                     }
                                 }
                             }
+                            if (getModelMethod == null) throw new IllegalStateException("Could not find getBlockModel method");
+                            Object model = getModelMethod.invoke(shaper, state);
+                            
+                            java.util.List<net.minecraft.core.Direction> dirs = new java.util.ArrayList<>();
+                            dirs.add(null);
+                            for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
+                                dirs.add(d);
+                            }
+                            
+                            java.lang.reflect.Method getQuadsMethod = null;
+                            for (java.lang.reflect.Method m : model.getClass().getMethods()) {
+                                if (m.getParameterCount() == 3 && !java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
+                                    getQuadsMethod = m;
+                                    break;
+                                }
+                            }
+                            if (getQuadsMethod == null) throw new IllegalStateException("Could not find getQuads method");
+                            
+                            for (net.minecraft.core.Direction d : dirs) {
+                                java.util.List<?> bakedQuads = (java.util.List<?>) getQuadsMethod.invoke(model, state, d, net.minecraft.util.RandomSource.create(42));
+                                for (Object q : bakedQuads) {
+                                    java.lang.reflect.Method getVerticesMethod = null;
+                                    java.lang.reflect.Method getSpriteMethod = null;
+                                    for (java.lang.reflect.Method m : q.getClass().getMethods()) {
+                                        if (m.getParameterCount() == 0) {
+                                            if (m.getReturnType() == int[].class) {
+                                                getVerticesMethod = m;
+                                            } else if (m.getReturnType().getName().contains("Sprite") || m.getReturnType().getName().contains("Material") || m.getReturnType().getName().contains("Icon")) {
+                                                getSpriteMethod = m;
+                                            }
+                                        }
+                                    }
+                                    
+                                    int[] data = (int[]) getVerticesMethod.invoke(q);
+                                    float[] qPos = new float[12];
+                                    float[] uv = new float[8];
+                                    for(int i = 0; i < 4; i++) {
+                                        int offset = i * 8;
+                                        qPos[i*3] = Float.intBitsToFloat(data[offset]);
+                                        qPos[i*3+1] = Float.intBitsToFloat(data[offset+1]);
+                                        qPos[i*3+2] = Float.intBitsToFloat(data[offset+2]);
+                                        uv[i*2] = Float.intBitsToFloat(data[offset+4]);
+                                        uv[i*2+1] = Float.intBitsToFloat(data[offset+5]);
+                                    }
+                                    
+                                    Object spriteObj = getSpriteMethod != null ? getSpriteMethod.invoke(q) : null;
+                                    String texName = "default";
+                                    if (spriteObj != null) {
+                                        net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = (net.minecraft.client.renderer.texture.TextureAtlasSprite) spriteObj;
+                                        net.minecraft.resources.Identifier spriteId = sprite.contents().name();
+                                        texName = spriteId.toString();
+                                        if (!textures.containsKey(texName)) {
+                                            net.minecraft.resources.Identifier textureRes = net.minecraft.resources.Identifier.fromNamespaceAndPath(spriteId.getNamespace(), "textures/" + spriteId.getPath() + ".png");
+                                            java.util.Optional<net.minecraft.server.packs.resources.Resource> resourceOpt = net.minecraft.client.Minecraft.getInstance().getResourceManager().getResource(textureRes);
+                                            if (resourceOpt.isPresent()) {
+                                                try (java.io.InputStream is = resourceOpt.get().open()) {
+                                                    byte[] bytes = is.readAllBytes();
+                                                    String base64 = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes);
+                                                    textures.put(texName, base64);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    quads.add(new ExportData.QuadData(qPos, uv, texName));
+                                }
+                            }
                         } catch (Exception e) {
-                            com.visomod.VisoMod.LOGGER.error("Failed to extract texture for " + stateKey, e);
+                            com.visomod.VisoMod.LOGGER.error("Failed to extract BakedModel for " + stateKey, e);
                         }
 
-                        java.util.List<ExportData.ShapeBox> shapes = new java.util.ArrayList<>();
-                        try {
-                            net.minecraft.world.phys.shapes.VoxelShape shape = state.getShape(world, pos);
-                            if (!shape.isEmpty()) {
-                                for (net.minecraft.world.phys.AABB aabb : shape.toAabbs()) {
-                                    shapes.add(new ExportData.ShapeBox(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ));
-                                }
-                                if (shapes.size() == 1) {
-                                    ExportData.ShapeBox box = shapes.get(0);
-                                    if (box.minX == 0.0 && box.minY == 0.0 && box.minZ == 0.0 &&
-                                        box.maxX == 1.0 && box.maxY == 1.0 && box.maxZ == 1.0) {
-                                        shapes = null;
-                                    }
-                                }
-                            } else {
-                                shapes = null;
-                            }
-                        } catch (Exception e) {
-                            com.visomod.VisoMod.LOGGER.warn("Could not get shape for " + stateKey, e);
-                            shapes = null;
+                        ExportData.ModelData modelData = null;
+                        if (!quads.isEmpty()) {
+                            modelData = new ExportData.ModelData(textures, quads);
                         }
 
                         exportData.palette.put(String.valueOf(paletteId),
-                                new ExportData.PaletteEntry(paletteId, blockId, properties, base64, shapes));
+                                new ExportData.PaletteEntry(paletteId, blockId, properties, modelData));
                     } else {
                         paletteId = blockToPaletteId.get(stateKey);
                     }

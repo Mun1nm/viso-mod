@@ -52,19 +52,31 @@ public class ExportData {
             }
             sb.append("}");
 
-            if (entry.getValue().base64Texture != null) {
-                sb.append(",\"base64Texture\":").append(sp).append("\"").append(entry.getValue().base64Texture).append("\"");
-            }
-            
-            if (entry.getValue().shapes != null && !entry.getValue().shapes.isEmpty()) {
-                sb.append(",\"shapes\":").append(sp).append("[");
-                int sCount = 0;
-                for (ShapeBox box : entry.getValue().shapes) {
-                    sb.append("{\"min\":[").append(box.minX).append(",").append(box.minY).append(",").append(box.minZ).append("],");
-                    sb.append("\"max\":[").append(box.maxX).append(",").append(box.maxY).append(",").append(box.maxZ).append("]}");
-                    if (sCount++ < entry.getValue().shapes.size() - 1) sb.append(",");
+            if (entry.getValue().model != null) {
+                sb.append(",\"model\":").append(sp).append("{");
+                sb.append("\"textures\":").append(sp).append("{");
+                int tCount = 0;
+                for (Map.Entry<String, String> tex : entry.getValue().model.textures.entrySet()) {
+                    sb.append("\"").append(tex.getKey()).append("\":\"").append(tex.getValue()).append("\"");
+                    if (tCount++ < entry.getValue().model.textures.size() - 1) sb.append(",");
                 }
-                sb.append("]");
+                sb.append("},\"quads\":").append(sp).append("[");
+                int qCount = 0;
+                for (QuadData q : entry.getValue().model.quads) {
+                    sb.append("{\"pos\":[");
+                    for (int i = 0; i < q.pos.length; i++) {
+                        sb.append(q.pos[i]);
+                        if (i < q.pos.length - 1) sb.append(",");
+                    }
+                    sb.append("],\"uv\":[");
+                    for (int i = 0; i < q.uv.length; i++) {
+                        sb.append(q.uv[i]);
+                        if (i < q.uv.length - 1) sb.append(",");
+                    }
+                    sb.append("],\"texture\":\"").append(q.texture).append("\"}");
+                    if (qCount++ < entry.getValue().model.quads.size() - 1) sb.append(",");
+                }
+                sb.append("]}");
             }
             
             sb.append("}");
@@ -129,23 +141,35 @@ public class ExportData {
         public int id;
         public String name;
         public Map<String, String> properties;
-        public String base64Texture;
-        public List<ShapeBox> shapes;
+        public ModelData model;
 
-        public PaletteEntry(int id, String name, Map<String, String> properties, String base64Texture, List<ShapeBox> shapes) {
+        public PaletteEntry(int id, String name, Map<String, String> properties, ModelData model) {
             this.id = id;
             this.name = name;
             this.properties = properties;
-            this.base64Texture = base64Texture;
-            this.shapes = shapes;
+            this.model = model;
         }
     }
 
-    public static class ShapeBox {
-        public double minX, minY, minZ, maxX, maxY, maxZ;
-        public ShapeBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-            this.minX = minX; this.minY = minY; this.minZ = minZ;
-            this.maxX = maxX; this.maxY = maxY; this.maxZ = maxZ;
+    public static class ModelData {
+        public Map<String, String> textures;
+        public List<QuadData> quads;
+
+        public ModelData(Map<String, String> textures, List<QuadData> quads) {
+            this.textures = textures;
+            this.quads = quads;
+        }
+    }
+
+    public static class QuadData {
+        public float[] pos;
+        public float[] uv;
+        public String texture;
+
+        public QuadData(float[] pos, float[] uv, String texture) {
+            this.pos = pos;
+            this.uv = uv;
+            this.texture = texture;
         }
     }
 
