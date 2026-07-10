@@ -132,10 +132,27 @@ public class StructureExporter {
                                                         Object[] mipLevels = (Object[]) nativeImageArrayField.get(contentsObj);
                                                         if (mipLevels != null && mipLevels.length > 0) {
                                                             Object nativeImage = mipLevels[0];
-                                                            com.visomod.VisoMod.LOGGER.info("NativeImage class: " + nativeImage.getClass().getName());
-                                                            for (java.lang.reflect.Method m : nativeImage.getClass().getMethods()) {
-                                                                com.visomod.VisoMod.LOGGER.info("NI Method: " + m.getName() + " returnType: " + m.getReturnType().getName());
+                                                            int width = (int) nativeImage.getClass().getMethod("getWidth").invoke(nativeImage);
+                                                            int height = (int) nativeImage.getClass().getMethod("getHeight").invoke(nativeImage);
+                                                            int[] pixels = (int[]) nativeImage.getClass().getMethod("getPixelsABGR").invoke(nativeImage);
+
+                                                            java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                                                            for (int py = 0; py < height; py++) {
+                                                                for (int px = 0; px < width; px++) {
+                                                                    int abgr = pixels[py * width + px];
+                                                                    int a = (abgr >> 24) & 0xFF;
+                                                                    int b = (abgr >> 16) & 0xFF;
+                                                                    int g = (abgr >> 8) & 0xFF;
+                                                                    int r = abgr & 0xFF;
+                                                                    int argb = (a << 24) | (r << 16) | (g << 8) | b;
+                                                                    img.setRGB(px, py, argb);
+                                                                }
                                                             }
+                                                            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                                                            javax.imageio.ImageIO.write(img, "png", baos);
+                                                            byte[] bytes = baos.toByteArray();
+                                                            String base64 = "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(bytes);
+                                                            textures.put(texName, base64);
                                                         }
                                                     }
                                                 } catch (Exception e) {
