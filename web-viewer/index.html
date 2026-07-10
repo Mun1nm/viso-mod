@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Viso — Mine-to-Web Isometric Exporter</title>
+  <title>VisoMod</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300f0ff'/><text x='50' y='70' font-size='60' text-anchor='middle' font-family='sans-serif' font-weight='bold' fill='%230a0d14'>V</text></svg>" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
-  <!-- Header Bar -->
+  <!-- Header Bar (minimal) -->
   <header class="app-header">
     <div class="logo-area">
       <div class="logo-icon">V</div>
       <div class="logo-text">
-        <h1>Viso <span>Isometric Viewer</span></h1>
-        <p>Minecraft 26.2 Structure Renderer & Inspector</p>
+        <h1>VisoMod</h1>
+        <p id="header-structure-name">Nenhuma estrutura carregada</p>
       </div>
     </div>
 
-    <div class="header-controls">
-      <!-- Sample structures select -->
+    <!-- Hidden controls (kept in code, not shown) -->
+    <div class="header-controls" style="display:none">
       <div class="sample-select-wrapper">
         <label for="sample-select">Amostra:</label>
         <select id="sample-select">
@@ -30,10 +30,7 @@
           <option value="mine">Mina Subterrânea Riquíssima</option>
         </select>
       </div>
-
-      <!-- File upload drop/button -->
       <label class="btn-upload" for="file-input">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
         <span>Abrir Exportação (.json / .gz)</span>
         <input type="file" id="file-input" accept=".json,.gz,.json.gz" hidden />
       </label>
@@ -44,7 +41,7 @@
   <main class="viewport-container">
     <div id="canvas-container"></div>
 
-    <!-- Drag & Drop Overlay Overlay -->
+    <!-- Drag & Drop Overlay -->
     <div id="drop-zone" class="drop-zone hidden">
       <div class="drop-zone-content">
         <div class="drop-icon">📦</div>
@@ -64,7 +61,7 @@
         <span id="stat-total" class="stat-value">353</span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Visíveis / Instanciados</span>
+        <span class="stat-label">Visíveis</span>
         <span id="stat-visible" class="stat-value text-cyan">280</span>
       </div>
       <div class="stat-item">
@@ -85,17 +82,16 @@
         <strong id="slice-y-label">Y: 7</strong>
       </div>
 
-      <!-- Vertical / Horizontal Range Slider -->
       <div class="slider-wrapper">
         <input type="range" id="y-slice-slider" min="0" max="7" value="7" step="1" />
       </div>
 
       <div class="slicer-nav-buttons">
         <button id="btn-slice-down" class="btn-slice" title="Camada abaixo">
-          <span>▼ Camada Abaixo</span>
+          <span>▼ Abaixo</span>
         </button>
         <button id="btn-slice-up" class="btn-slice" title="Camada acima">
-          <span>▲ Camada Acima</span>
+          <span>▲ Acima</span>
         </button>
       </div>
 
@@ -135,11 +131,16 @@
 
     <!-- Isometric Controls Bar (Bottom Center) -->
     <nav class="isometric-controls glass-panel">
+
       <div class="control-group">
-        <span class="control-group-title">Modo de Visão</span>
-        <div class="button-row">
-          <button id="btn-mode-3d" class="btn-toggle active" title="Visão 3D Isométrica">3D Isométrico</button>
-          <button id="btn-mode-2d" class="btn-toggle" title="Visão 2D Planta Baixa (Visto de Cima)">2D Top-Down</button>
+        <span class="control-group-title">Visão</span>
+        <div class="view-mode-switch">
+          <span class="view-mode-label">3D</span>
+          <label class="mode-toggle-track" title="Alternar entre 3D Isométrico e 2D Top-Down">
+            <input type="checkbox" id="toggle-view-mode" />
+            <span class="mode-toggle-thumb"></span>
+          </label>
+          <span class="view-mode-label">2D</span>
         </div>
       </div>
 
@@ -148,10 +149,10 @@
       <div class="control-group">
         <span class="control-group-title">Ângulo</span>
         <div class="button-row">
-          <button class="btn-iso active" data-angle="45" title="Nordeste (45°)">NE 45°</button>
-          <button class="btn-iso" data-angle="135" title="Sudeste (135°)">SE 135°</button>
-          <button class="btn-iso" data-angle="225" title="Sudoeste (225°)">SW 225°</button>
-          <button class="btn-iso" data-angle="315" title="Noroeste (315°)">NW 315°</button>
+          <button class="btn-iso active" data-angle="0"   title="Norte (0°)">N 0°</button>
+          <button class="btn-iso"        data-angle="90"  title="Leste (90°)">L 90°</button>
+          <button class="btn-iso"        data-angle="180" title="Sul (180°)">S 180°</button>
+          <button class="btn-iso"        data-angle="270" title="Oeste (270°)">O 270°</button>
         </div>
       </div>
 

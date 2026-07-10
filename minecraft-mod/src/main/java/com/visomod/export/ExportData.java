@@ -10,8 +10,8 @@ public class ExportData {
     public Map<String, PaletteEntry> palette;
     public List<BlockEntry> blocks;
 
-    public ExportData(String version, int[] min, int[] max, int[] dimensions) {
-        this.metadata = new Metadata(version, min, max, dimensions);
+    public ExportData(String version, int[] min, int[] max, int[] dimensions, String name) {
+        this.metadata = new Metadata(version, min, max, dimensions, name);
         this.palette = new LinkedHashMap<>();
         this.blocks = new ArrayList<>();
     }
@@ -28,6 +28,7 @@ public class ExportData {
         // Metadata
         sb.append(indent1).append("\"metadata\":").append(sp).append("{").append(nl);
         sb.append(indent2).append("\"version\":").append(sp).append("\"").append(metadata.version).append("\",").append(nl);
+        sb.append(indent2).append("\"name\":").append(sp).append("\"").append(metadata.name).append("\",").append(nl);
         sb.append(indent2).append("\"bounds\":").append(sp).append("{").append(nl);
         sb.append(indent3).append("\"min\":").append(sp).append("[").append(metadata.bounds.min[0]).append(",").append(sp).append(metadata.bounds.min[1]).append(",").append(sp).append(metadata.bounds.min[2]).append("],").append(nl);
         sb.append(indent3).append("\"max\":").append(sp).append("[").append(metadata.bounds.max[0]).append(",").append(sp).append(metadata.bounds.max[1]).append(",").append(sp).append(metadata.bounds.max[2]).append("]").append(nl);
@@ -64,12 +65,14 @@ public class ExportData {
 
     public static class Metadata {
         public String version;
+        public String name;
         public Bounds bounds;
         public Dimensions dimensions;
         public long exportedAt;
 
-        public Metadata(String version, int[] min, int[] max, int[] dimensions) {
+        public Metadata(String version, int[] min, int[] max, int[] dimensions, String name) {
             this.version = version;
+            this.name = name;
             this.bounds = new Bounds(min, max);
             this.dimensions = new Dimensions(dimensions[0], dimensions[1], dimensions[2]);
             this.exportedAt = System.currentTimeMillis();

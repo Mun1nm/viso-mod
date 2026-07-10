@@ -38,11 +38,13 @@ class App {
   }
 
   initUI() {
-    // 1. Sample Selection Dropdown
+    // 1. Sample Selection Dropdown (hidden but functional)
     const sampleSelect = document.getElementById('sample-select');
-    sampleSelect.addEventListener('change', (e) => {
-      this.loadSample(e.target.value);
-    });
+    if (sampleSelect) {
+      sampleSelect.addEventListener('change', (e) => {
+        this.loadSample(e.target.value);
+      });
+    }
 
     // 2. File Upload Button
     const fileInput = document.getElementById('file-input');
@@ -122,7 +124,7 @@ class App {
       this.updateStatsUI(stats);
     });
 
-    // 6. Isometric Angle Buttons
+    // 6. Isometric Angle Buttons (0/90/180/270)
     const isoButtons = document.querySelectorAll('.btn-iso');
     isoButtons.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -132,6 +134,8 @@ class App {
         this.isoScene.setIsometricAngle(angle);
       });
     });
+    // Default angle is 0 now
+    this.isoScene.setIsometricAngle(0);
 
     // 7. Camera Controls
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
@@ -161,20 +165,14 @@ class App {
       this.isoScene.toggleShadows(btnShadows.classList.contains('active'));
     });
 
-    // 9. Vision Mode (3D Isometric vs 2D Top-Down)
-    const btnMode3D = document.getElementById('btn-mode-3d');
-    const btnMode2D = document.getElementById('btn-mode-2d');
-    if (btnMode3D && btnMode2D) {
-      btnMode3D.addEventListener('click', () => {
-        btnMode3D.classList.add('active');
-        btnMode2D.classList.remove('active');
-        this.isoScene.set2DMode(false);
-      });
-
-      btnMode2D.addEventListener('click', () => {
-        btnMode2D.classList.add('active');
-        btnMode3D.classList.remove('active');
-        this.isoScene.set2DMode(true);
+    // 9. Vision Mode Switch (3D <-> 2D)
+    const toggleViewMode = document.getElementById('toggle-view-mode');
+    if (toggleViewMode) {
+      toggleViewMode.addEventListener('change', (e) => {
+        const is2D = e.target.checked;
+        this.isoScene.set2DMode(is2D);
+        // In 2D mode, hide angle buttons as they rotate orthogonally
+        // (they still work via setIsometricAngle)
       });
     }
 
@@ -240,6 +238,12 @@ class App {
     document.getElementById('stat-dimensions').textContent = `${dims.x} × ${dims.y} × ${dims.z}`;
     this.updateStatsUI(stats);
     this.updateLegendUI();
+
+    // Update page title and header with structure name
+    const structureName = exportData.metadata?.name || exportData.metadata?.fileName || 'Estrutura';
+    document.title = `VisoMod — ${structureName}`;
+    const headerName = document.getElementById('header-structure-name');
+    if (headerName) headerName.textContent = structureName;
   }
 
   updateYSlice(sliceY) {

@@ -32,7 +32,8 @@ public class StructureExporter {
                 "26.2",
                 new int[]{min.getX(), min.getY(), min.getZ()},
                 new int[]{max.getX(), max.getY(), max.getZ()},
-                dims
+                dims,
+                fileName
         );
 
         Map<String, Integer> blockToPaletteId = new HashMap<>();

@@ -22,7 +22,8 @@ public class SampleExportGenerator {
         ExportData data = new ExportData("26.2",
                 new int[]{0, 0, 0},
                 new int[]{width - 1, height - 1, depth - 1},
-                new int[]{width, height, depth}
+                new int[]{width, height, depth},
+                "sample_castle"
         );
 
         String[] paletteNames = {
