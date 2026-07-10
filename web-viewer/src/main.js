@@ -234,13 +234,13 @@ class App {
   async loadSample(sampleId) {
     if (sampleId === 'castle') {
       try {
-        const norm = await ExportLoader.loadFromUrl('/samples/test_castle.json.gz');
+        const norm = await ExportLoader.loadFromUrl('samples/test_castle.json.gz');
         this.loadStructureData(norm);
         return;
       } catch (e) {
         console.warn('Fallback GZIP falhou, tentando JSON ou procedimental:', e);
         try {
-          const normJson = await ExportLoader.loadFromUrl('/samples/test_castle.json');
+          const normJson = await ExportLoader.loadFromUrl('samples/test_castle.json');
           this.loadStructureData(normJson);
           return;
         } catch (e2) {
