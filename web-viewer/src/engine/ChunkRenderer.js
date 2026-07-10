@@ -247,8 +247,16 @@ export class ChunkRenderer {
   _buildShadowLayer(dummy) {
     const shadowY = this.currentSliceY - 1;
 
-    // Collect all blocks at shadowY (no culling — show everything)
-    const shadowBlocks = this.allBlocks.filter(b => b.y === shadowY);
+    // Build a quick lookup for blocks at the current layer
+    const blocksAtCurrentY = new Set();
+    for (const b of this.allBlocks) {
+      if (b.y === this.currentSliceY) {
+        blocksAtCurrentY.add(`${b.x},${b.z}`);
+      }
+    }
+
+    // Collect all blocks at shadowY that are NOT covered by a block at currentSliceY
+    const shadowBlocks = this.allBlocks.filter(b => b.y === shadowY && !blocksAtCurrentY.has(`${b.x},${b.z}`));
     if (shadowBlocks.length === 0) return;
 
     // Group by blockId for efficient instancing
