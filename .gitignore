@@ -7,7 +7,7 @@ build/
 dist/
 out/
 *.jar
-!releases/*.jar
+!releases/**/*.jar
 
 # Gradle
 .gradle/
