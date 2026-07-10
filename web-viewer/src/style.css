@@ -1,3 +1,19 @@
+:root {
+  --bg-color: #0a0d14;
+  --glass-bg: rgba(16, 20, 28, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --primary: #00f0ff;
+  --primary-hover: #33f3ff;
+  --accent: #f59e0b;
+}
+
+/* Global helper classes */
+.hidden-desktop {
+  display: none;
+}
+
 /* Design System Premium - Viso Isometric Exporter */
 :root {
   --bg-primary: #0a0d14;
@@ -635,3 +651,118 @@ body {
 .mode-toggle-track input:checked ~ .mode-toggle-thumb::after {
   transform: translateX(20px);
 }
+
+/* ========================================= */
+/* MOBILE RESPONSIVENESS (Max Width: 768px)  */
+/* ========================================= */
+@media (max-width: 768px) {
+  .hidden-desktop {
+    display: flex !important;
+  }
+  
+  .mobile-toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: rgba(10, 13, 20, 0.95);
+    border-top: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  
+  .mobile-tab {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px;
+    flex: 1;
+    transition: color 0.2s;
+  }
+  
+  .mobile-tab.active {
+    color: var(--primary);
+  }
+  
+  /* Reset panels for mobile layout (Bottom Sheets) */
+  .slicer-panel, .legend-panel, .isometric-controls {
+    display: none; /* hidden by default */
+    position: fixed;
+    bottom: 74px; /* above the toolbar */
+    left: 12px;
+    right: 12px;
+    width: auto;
+    top: auto;
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    transform: none;
+    z-index: 90;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+  }
+  
+  /* When opened via JS */
+  .slicer-panel.mobile-open, .legend-panel.mobile-open, .isometric-controls.mobile-open {
+    display: flex;
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  /* Re-flow isometric controls for vertical mobile sheet */
+  .isometric-controls {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 12px;
+  }
+  .isometric-controls .control-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .isometric-controls .button-row {
+    flex-wrap: wrap;
+  }
+  .control-divider {
+    width: 100%;
+    height: 1px;
+  }
+  
+  /* Hide the stats panel to save space, or optionally make it small */
+  .stats-panel {
+    display: none;
+  }
+  
+  /* Inspector card moves to top or bottom */
+  .inspector-card {
+    top: 70px;
+    bottom: auto;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .inspector-coords {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+}
+

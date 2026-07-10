@@ -36,13 +36,15 @@ export class RaycastInspector {
   setupListeners() {
     const container = this.isoScene.container;
 
-    container.addEventListener('mousemove', (e) => {
+    const updateCursor = (e) => {
       const rect = container.getBoundingClientRect();
       this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
       this.inspectAtCursor();
-    });
+    };
+
+    container.addEventListener('pointermove', updateCursor);
+    container.addEventListener('pointerdown', updateCursor);
 
     container.addEventListener('mouseleave', () => {
       this.hideInspector();

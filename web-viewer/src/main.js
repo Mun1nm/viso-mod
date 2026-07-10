@@ -330,3 +330,44 @@ class App {
 window.addEventListener('DOMContentLoaded', () => {
   new App();
 });
+
+// ==========================================
+// MOBILE UI LOGIC
+// ==========================================
+const tabControls = document.getElementById('tab-controls');
+const tabSlicer = document.getElementById('tab-slicer');
+const tabLegend = document.getElementById('tab-legend');
+
+const panelControls = document.querySelector('.isometric-controls');
+const panelSlicer = document.querySelector('.slicer-panel');
+const panelLegend = document.querySelector('.legend-panel');
+
+function closeAllMobilePanels() {
+  panelControls?.classList.remove('mobile-open');
+  panelSlicer?.classList.remove('mobile-open');
+  panelLegend?.classList.remove('mobile-open');
+  tabControls?.classList.remove('active');
+  tabSlicer?.classList.remove('active');
+  tabLegend?.classList.remove('active');
+}
+
+function togglePanel(tab, panel) {
+  if (!tab || !panel) return;
+  const isOpen = panel.classList.contains('mobile-open');
+  closeAllMobilePanels();
+  if (!isOpen) {
+    panel.classList.add('mobile-open');
+    tab.classList.add('active');
+  }
+}
+
+tabControls?.addEventListener('click', () => togglePanel(tabControls, panelControls));
+tabSlicer?.addEventListener('click', () => togglePanel(tabSlicer, panelSlicer));
+tabLegend?.addEventListener('click', () => togglePanel(tabLegend, panelLegend));
+
+// Close panels when tapping outside (on the canvas)
+document.getElementById('canvas-container')?.addEventListener('pointerdown', () => {
+  if (window.innerWidth <= 768) {
+    closeAllMobilePanels();
+  }
+});
