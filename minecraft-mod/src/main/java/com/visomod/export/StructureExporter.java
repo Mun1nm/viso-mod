@@ -71,8 +71,8 @@ public class StructureExporter {
                             Object shaper = net.minecraft.client.Minecraft.getInstance().getModelManager().getBlockStateModelSet();
                             java.lang.reflect.Method getModelMethod = null;
                             for (java.lang.reflect.Method m : shaper.getClass().getMethods()) {
-                                if (m.getParameterCount() == 1 && m.getParameterTypes()[0].getName().contains("BlockState") && !java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
-                                    if (!m.getReturnType().getName().contains("Sprite") && !m.getReturnType().getName().contains("Material") && !m.getReturnType().getName().contains("Icon")) {
+                                if (m.getParameterCount() == 1 && m.getParameterTypes()[0].isInstance(state) && !java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
+                                    if (m.getReturnType().isInterface()) {
                                         getModelMethod = m;
                                         break;
                                     }
@@ -90,8 +90,10 @@ public class StructureExporter {
                             java.lang.reflect.Method getQuadsMethod = null;
                             for (java.lang.reflect.Method m : model.getClass().getMethods()) {
                                 if (m.getParameterCount() == 3 && !java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
-                                    getQuadsMethod = m;
-                                    break;
+                                    if (java.util.List.class.isAssignableFrom(m.getReturnType())) {
+                                        getQuadsMethod = m;
+                                        break;
+                                    }
                                 }
                             }
                             if (getQuadsMethod == null) throw new IllegalStateException("Could not find getQuads method");
@@ -102,10 +104,11 @@ public class StructureExporter {
                                     java.lang.reflect.Method getVerticesMethod = null;
                                     java.lang.reflect.Method getSpriteMethod = null;
                                     for (java.lang.reflect.Method m : q.getClass().getMethods()) {
-                                        if (m.getParameterCount() == 0) {
-                                            if (m.getReturnType() == int[].class) {
+                                        if (m.getParameterCount() == 0 && !java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
+                                            Class<?> ret = m.getReturnType();
+                                            if (ret == int[].class) {
                                                 getVerticesMethod = m;
-                                            } else if (m.getReturnType().getName().contains("Sprite") || m.getReturnType().getName().contains("Material") || m.getReturnType().getName().contains("Icon")) {
+                                            } else if (!ret.isPrimitive() && !ret.isArray() && !ret.isEnum() && ret != String.class && ret != Class.class) {
                                                 getSpriteMethod = m;
                                             }
                                         }
@@ -147,7 +150,7 @@ public class StructureExporter {
                                                 Object contentsObj = sprite.contents();
                                                 java.lang.reflect.Field nativeImageArrayField = null;
                                                 for (java.lang.reflect.Field f : contentsObj.getClass().getDeclaredFields()) {
-                                                    if (f.getType().isArray() && f.getType().getName().contains("NativeImage")) {
+                                                    if (f.getType().isArray() && !f.getType().getComponentType().isPrimitive()) {
                                                         nativeImageArrayField = f;
                                                         break;
                                                     }
