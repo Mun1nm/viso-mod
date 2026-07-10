@@ -84,8 +84,30 @@ public class StructureExporter {
                             com.visomod.VisoMod.LOGGER.error("Failed to extract texture for " + stateKey, e);
                         }
 
+                        java.util.List<ExportData.ShapeBox> shapes = new java.util.ArrayList<>();
+                        try {
+                            net.minecraft.world.phys.shapes.VoxelShape shape = state.getShape(world, pos);
+                            if (!shape.isEmpty()) {
+                                for (net.minecraft.world.phys.AABB aabb : shape.toAabbs()) {
+                                    shapes.add(new ExportData.ShapeBox(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ));
+                                }
+                                if (shapes.size() == 1) {
+                                    ExportData.ShapeBox box = shapes.get(0);
+                                    if (box.minX == 0.0 && box.minY == 0.0 && box.minZ == 0.0 &&
+                                        box.maxX == 1.0 && box.maxY == 1.0 && box.maxZ == 1.0) {
+                                        shapes = null;
+                                    }
+                                }
+                            } else {
+                                shapes = null;
+                            }
+                        } catch (Exception e) {
+                            com.visomod.VisoMod.LOGGER.warn("Could not get shape for " + stateKey, e);
+                            shapes = null;
+                        }
+
                         exportData.palette.put(String.valueOf(paletteId),
-                                new ExportData.PaletteEntry(paletteId, blockId, properties, base64));
+                                new ExportData.PaletteEntry(paletteId, blockId, properties, base64, shapes));
                     } else {
                         paletteId = blockToPaletteId.get(stateKey);
                     }

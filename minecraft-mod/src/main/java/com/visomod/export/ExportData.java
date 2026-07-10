@@ -56,6 +56,17 @@ public class ExportData {
                 sb.append(",\"base64Texture\":").append(sp).append("\"").append(entry.getValue().base64Texture).append("\"");
             }
             
+            if (entry.getValue().shapes != null && !entry.getValue().shapes.isEmpty()) {
+                sb.append(",\"shapes\":").append(sp).append("[");
+                int sCount = 0;
+                for (ShapeBox box : entry.getValue().shapes) {
+                    sb.append("{\"min\":[").append(box.minX).append(",").append(box.minY).append(",").append(box.minZ).append("],");
+                    sb.append("\"max\":[").append(box.maxX).append(",").append(box.maxY).append(",").append(box.maxZ).append("]}");
+                    if (sCount++ < entry.getValue().shapes.size() - 1) sb.append(",");
+                }
+                sb.append("]");
+            }
+            
             sb.append("}");
             if (pIndex++ < palette.size() - 1) sb.append(",");
             sb.append(nl);
@@ -119,12 +130,22 @@ public class ExportData {
         public String name;
         public Map<String, String> properties;
         public String base64Texture;
+        public List<ShapeBox> shapes;
 
-        public PaletteEntry(int id, String name, Map<String, String> properties, String base64Texture) {
+        public PaletteEntry(int id, String name, Map<String, String> properties, String base64Texture, List<ShapeBox> shapes) {
             this.id = id;
             this.name = name;
             this.properties = properties;
             this.base64Texture = base64Texture;
+            this.shapes = shapes;
+        }
+    }
+
+    public static class ShapeBox {
+        public double minX, minY, minZ, maxX, maxY, maxZ;
+        public ShapeBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+            this.minX = minX; this.minY = minY; this.minZ = minZ;
+            this.maxX = maxX; this.maxY = maxY; this.maxZ = maxZ;
         }
     }
 

@@ -39,7 +39,7 @@ public class SampleExportGenerator {
         Map<String, Integer> blockToId = new HashMap<>();
         for (int i = 0; i < paletteNames.length; i++) {
             blockToId.put(paletteNames[i], i);
-            data.palette.put(String.valueOf(i), new ExportData.PaletteEntry(i, paletteNames[i], new HashMap<>(), null));
+            data.palette.put(String.valueOf(i), new ExportData.PaletteEntry(i, paletteNames[i], new HashMap<>(), null, null));
         }
 
         // Generate a sample house / castle structure

@@ -20,6 +20,7 @@ export class MinecraftDataService {
     let baseId = cleanId;
     let properties = null;
     let base64Texture = null;
+    let shapes = null;
     let displayName = cleanId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
     if (cleanId.startsWith('palette_')) {
@@ -29,6 +30,7 @@ export class MinecraftDataService {
             baseId = pEntry.name.replace('minecraft:', '');
             properties = pEntry.properties;
             base64Texture = pEntry.base64Texture;
+            shapes = pEntry.shapes;
             displayName = baseId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             if (properties) {
                 const propsStr = Object.entries(properties).map(([k,v]) => `${k}=${v}`).join(', ');
@@ -50,7 +52,8 @@ export class MinecraftDataService {
       isLeaves: baseId.includes('leaves'),
       baseColor: this.resolveBaseColor(baseId),
       properties: properties,
-      base64Texture: base64Texture
+      base64Texture: base64Texture,
+      shapes: shapes
     };
 
     this.blockCache.set(cleanId, info);

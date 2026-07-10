@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const HIGH_CONTRAST_PALETTE = [
   '#FF2A6D', '#05D9E8', '#00FF66', '#FFB800', '#B800FF', '#FF5E00',
@@ -359,14 +360,45 @@ export class ChunkRenderer {
   }
 
   getGeometryForBlock(info) {
-    const cacheKey = info.name + (info.properties ? JSON.stringify(info.properties) : "");
+    const cacheKey = info.name + (info.properties ? JSON.stringify(info.properties) : "") + (info.shapes ? JSON.stringify(info.shapes) : "");
     if (this.geometryCache.has(cacheKey)) {
         return this.geometryCache.get(cacheKey);
     }
     
     let geom = new THREE.BoxGeometry(1, 1, 1);
-    
-    if (info.name) {
+
+    if (info.shapes && info.shapes.length > 0) {
+        const boxGeoms = [];
+        for (const box of info.shapes) {
+            const width = box.max[0] - box.min[0];
+            const height = box.max[1] - box.min[1];
+            const depth = box.max[2] - box.min[2];
+            
+            if (width <= 0 || height <= 0 || depth <= 0) continue;
+            
+            const bGeom = new THREE.BoxGeometry(width, height, depth);
+            // Translate center from origin to the center of the bounding box
+            const cx = box.min[0] + width / 2.0;
+            const cy = box.min[1] + height / 2.0;
+            const cz = box.min[2] + depth / 2.0;
+            
+            // In Three.js, box center is (0,0,0). Block's center should be at (0,0,0) in grid, 
+            // but Minecraft AABBs are from (0,0,0) to (1,1,1).
+            // So we subtract 0.5 to center the AABB around 0,0,0 in ThreeJS local space.
+            bGeom.translate(cx - 0.5, cy - 0.5, cz - 0.5);
+            boxGeoms.push(bGeom);
+        }
+        
+        if (boxGeoms.length > 0) {
+            if (boxGeoms.length === 1) {
+                geom = boxGeoms[0];
+            } else {
+                geom = mergeGeometries(boxGeoms, false);
+            }
+        }
+    } else if (info.name) {
+        // Fallback for special blocks that don't have accurate collision shapes but need visual shaping
+        // Note: With shapes extraction, most of this fallback is unnecessary for collision-based blocks!
         if (info.name.includes('slab')) {
             const type = info.properties ? info.properties.type : 'bottom';
             if (type === 'bottom') {
@@ -376,30 +408,6 @@ export class ChunkRenderer {
                 geom = new THREE.BoxGeometry(1, 0.5, 1);
                 geom.translate(0, 0.25, 0);
             }
-        } else if (info.name.includes('stairs')) {
-            // Simplified stairs: ramp
-            const half = info.properties ? info.properties.half : 'bottom';
-            const shape = new THREE.Shape();
-            if (half === 'bottom') {
-                shape.moveTo(0.5, -0.5);
-                shape.lineTo(-0.5, -0.5);
-                shape.lineTo(-0.5, 0.5);
-                shape.lineTo(0.5, -0.5);
-            } else {
-                shape.moveTo(0.5, 0.5);
-                shape.lineTo(-0.5, 0.5);
-                shape.lineTo(-0.5, -0.5);
-                shape.lineTo(0.5, 0.5);
-            }
-            
-            const extrudeSettings = { depth: 1, bevelEnabled: false };
-            geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-            // Center the geometry
-            geom.translate(0, 0, -0.5);
-            // Fix UV mapping for extrude
-            this.fixExtrudeUVs(geom);
-        } else if (info.name.includes('wall') || info.name.includes('fence')) {
-            geom = new THREE.BoxGeometry(0.3, 1, 0.3);
         } else if (info.name.includes('carpet')) {
             geom = new THREE.BoxGeometry(1, 0.0625, 1);
             geom.translate(0, -0.46875, 0);
@@ -408,14 +416,10 @@ export class ChunkRenderer {
             const h = layers / 8;
             geom = new THREE.BoxGeometry(1, h, 1);
             geom.translate(0, -0.5 + h/2, 0);
-        } else if (info.name.includes('door') && !info.name.includes('trapdoor')) {
-            geom = new THREE.BoxGeometry(1, 1, 0.1875);
-            geom.translate(0, 0, 0.5 - 0.09375);
-        } else if (info.name.includes('trapdoor')) {
-            geom = new THREE.BoxGeometry(1, 0.1875, 1);
-            const half = info.properties ? info.properties.half : 'bottom';
-            if (half === 'bottom') geom.translate(0, -0.5 + 0.09375, 0);
-            else geom.translate(0, 0.5 - 0.09375, 0);
+        } else if (info.name.includes('stairs') || info.name.includes('wall') || info.name.includes('fence') || info.name.includes('door')) {
+            // Se chegou aqui é porque nao tem shape (exemplo: mod nao exportou ou algo falhou)
+            // Vamos apenas usar bloco cheio pra n quebrar
+            geom = new THREE.BoxGeometry(1, 1, 1);
         }
     }
     
