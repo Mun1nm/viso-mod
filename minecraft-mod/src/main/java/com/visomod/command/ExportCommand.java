@@ -33,8 +33,10 @@ public class ExportCommand {
                     .withStyle(ChatFormatting.GOLD)
                     .append(Component.literal("Estrutura exportada com sucesso! ")
                             .withStyle(ChatFormatting.GREEN))
-                    .append(Component.literal(result.totalBlocks + " blocos (" + result.paletteSize + " tipos) -> " +
-                            result.gzipFile.getName()).withStyle(ChatFormatting.AQUA)), false);
+                    .append(Component.literal(result.totalBlocks + " blocos -> ")
+                            .withStyle(ChatFormatting.YELLOW))
+                    .append(Component.literal(result.htmlFile.getName() + " (HTML Standalone)")
+                            .withStyle(ChatFormatting.AQUA)), false);
 
             return 1;
         } catch (Exception e) {

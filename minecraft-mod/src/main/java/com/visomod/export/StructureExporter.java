@@ -75,9 +75,10 @@ public class StructureExporter {
             exportsDir.mkdirs();
         }
 
+        String rawJson = exportData.toJson(true);
         File rawJsonFile = new File(exportsDir, fileName + ".json");
         try (FileWriter writer = new FileWriter(rawJsonFile, StandardCharsets.UTF_8)) {
-            writer.write(exportData.toJson(true));
+            writer.write(rawJson);
         }
 
         File gzipFile = new File(exportsDir, fileName + ".json.gz");
@@ -87,18 +88,22 @@ public class StructureExporter {
             osw.write(exportData.toJson(false));
         }
 
-        return new ExportResult(rawJsonFile, gzipFile, exportData.blocks.size(), blockToPaletteId.size());
+        File htmlFile = HtmlExporter.generateStandaloneHtml(exportsDir, fileName, rawJson);
+
+        return new ExportResult(rawJsonFile, gzipFile, htmlFile, exportData.blocks.size(), blockToPaletteId.size());
     }
 
     public static class ExportResult {
         public final File rawJsonFile;
         public final File gzipFile;
+        public final File htmlFile;
         public final int totalBlocks;
         public final int paletteSize;
 
-        public ExportResult(File rawJsonFile, File gzipFile, int totalBlocks, int paletteSize) {
+        public ExportResult(File rawJsonFile, File gzipFile, File htmlFile, int totalBlocks, int paletteSize) {
             this.rawJsonFile = rawJsonFile;
             this.gzipFile = gzipFile;
+            this.htmlFile = htmlFile;
             this.totalBlocks = totalBlocks;
             this.paletteSize = paletteSize;
         }
