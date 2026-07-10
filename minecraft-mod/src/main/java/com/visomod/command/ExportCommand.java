@@ -13,7 +13,9 @@ public class ExportCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("exportar")
-                .requires(source -> source.hasPermission(0)) // Allow players to export their selection
+                // In Minecraft 26.2, hasPermission/hasPermissionLevel no longer exist.
+                // Use .requires(source -> true) to allow all players.
+                .requires(source -> true)
                 .then(Commands.argument("nome_arquivo", StringArgumentType.word())
                         .executes(ExportCommand::executeExport)));
     }
