@@ -89,6 +89,11 @@ export class IsometricScene {
     this.updateCameraPosition();
   }
 
+  set2DMode(is2D) {
+    this.is2DMode = is2D;
+    this.updateCameraPosition();
+  }
+
   setZoom(delta) {
     this.zoom = Math.max(4, Math.min(80, this.zoom + delta));
     this.updateCameraProjection();
@@ -123,6 +128,20 @@ export class IsometricScene {
 
   updateCameraPosition() {
     const rad = (this.currentAngleDeg * Math.PI) / 180;
+
+    if (this.is2DMode) {
+      const distance = 80;
+      this.camera.up.set(-Math.sin(rad), 0, -Math.cos(rad));
+      this.camera.position.set(
+        this.targetCenter.x,
+        this.targetCenter.y + distance,
+        this.targetCenter.z
+      );
+      this.camera.lookAt(this.targetCenter);
+      return;
+    }
+
+    this.camera.up.set(0, 1, 0);
     const distance = 80;
 
     // Classic true isometric vertical elevation angle ~35.264 degrees

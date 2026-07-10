@@ -160,6 +160,43 @@ class App {
       btnShadows.classList.toggle('active');
       this.isoScene.toggleShadows(btnShadows.classList.contains('active'));
     });
+
+    // 9. Vision Mode (3D Isometric vs 2D Top-Down)
+    const btnMode3D = document.getElementById('btn-mode-3d');
+    const btnMode2D = document.getElementById('btn-mode-2d');
+    if (btnMode3D && btnMode2D) {
+      btnMode3D.addEventListener('click', () => {
+        btnMode3D.classList.add('active');
+        btnMode2D.classList.remove('active');
+        this.isoScene.set2DMode(false);
+      });
+
+      btnMode2D.addEventListener('click', () => {
+        btnMode2D.classList.add('active');
+        btnMode3D.classList.remove('active');
+        this.isoScene.set2DMode(true);
+      });
+    }
+
+    // 10. Single Layer Only Checkbox
+    const toggleSingleLayer = document.getElementById('toggle-single-layer');
+    if (toggleSingleLayer) {
+      toggleSingleLayer.addEventListener('change', (e) => {
+        const stats = this.chunkRenderer.setSingleLayerOnly(e.target.checked);
+        this.updateStatsUI(stats);
+        this.updateLegendUI();
+      });
+    }
+
+    // 11. Distinct Colors (High Contrast Legend) Checkbox
+    const toggleDistinctColors = document.getElementById('toggle-distinct-colors');
+    if (toggleDistinctColors) {
+      toggleDistinctColors.addEventListener('change', (e) => {
+        const stats = this.chunkRenderer.setDistinctColorsMode(e.target.checked);
+        this.updateStatsUI(stats);
+        this.updateLegendUI();
+      });
+    }
   }
 
   async loadSample(sampleId) {
@@ -202,12 +239,35 @@ class App {
     // Update Dimensions UI stat
     document.getElementById('stat-dimensions').textContent = `${dims.x} × ${dims.y} × ${dims.z}`;
     this.updateStatsUI(stats);
+    this.updateLegendUI();
   }
 
   updateYSlice(sliceY) {
     this.yLabel.textContent = `Y: ${sliceY}`;
     const stats = this.chunkRenderer.setSliceY(sliceY);
     this.updateStatsUI(stats);
+    this.updateLegendUI();
+  }
+
+  updateLegendUI() {
+    const legendPanel = document.getElementById('legend-panel');
+    const legendList = document.getElementById('legend-list');
+    if (!legendPanel || !legendList) return;
+
+    if (!this.chunkRenderer.distinctColorsMode) {
+      legendPanel.classList.add('hidden');
+      return;
+    }
+
+    legendPanel.classList.remove('hidden');
+    const items = this.chunkRenderer.getLegendData();
+    legendList.innerHTML = items.map(item => `
+      <div class="legend-item">
+        <span class="legend-color-badge" style="background-color: ${item.colorHex};"></span>
+        <span class="legend-block-name" title="${item.blockId}">${item.displayName}</span>
+        <span class="legend-block-count">${item.count}</span>
+      </div>
+    `).join('');
   }
 
   updateStatsUI(stats) {

@@ -1,4 +1,10 @@
-import * as THREE from 'three';
+const HIGH_CONTRAST_PALETTE = [
+  '#FF2A6D', '#05D9E8', '#00FF66', '#FFB800', '#B800FF', '#FF5E00',
+  '#00E5FF', '#FF6B6B', '#9B5DE5', '#F15BB5', '#00F5D4', '#4361EE',
+  '#D90429', '#4CC9F0', '#F8961E', '#2EC4B6', '#F72585', '#7209B7',
+  '#3A86FF', '#FB5607', '#8338EC', '#FF006E', '#38B000', '#CCFF33',
+  '#FF9E00', '#9D4EDD', '#4895EF', '#560BAD', '#F1A208', '#06D6A0'
+];
 
 export class ChunkRenderer {
   constructor(scene, textureManager, mcDataService) {
@@ -13,6 +19,11 @@ export class ChunkRenderer {
 
     this.currentSliceY = 999;
     this.enableCulling = true;
+    this.singleLayerOnly = false;
+    this.distinctColorsMode = false;
+
+    this.blockColorMap = new Map();
+    this.distinctMaterials = new Map();
 
     this.geometry = new THREE.BoxGeometry(1, 1, 1);
   }
@@ -47,6 +58,52 @@ export class ChunkRenderer {
     return this.rebuildMeshes();
   }
 
+  setSingleLayerOnly(enabled) {
+    this.singleLayerOnly = enabled;
+    return this.rebuildMeshes();
+  }
+
+  setDistinctColorsMode(enabled) {
+    this.distinctColorsMode = enabled;
+    return this.rebuildMeshes();
+  }
+
+  getDistinctColorHex(blockId) {
+    if (!this.blockColorMap.has(blockId)) {
+      const idx = this.blockColorMap.size % HIGH_CONTRAST_PALETTE.length;
+      this.blockColorMap.set(blockId, HIGH_CONTRAST_PALETTE[idx]);
+    }
+    return this.blockColorMap.get(blockId);
+  }
+
+  getDistinctMaterialForBlock(blockId) {
+    if (!this.distinctMaterials.has(blockId)) {
+      const hex = this.getDistinctColorHex(blockId);
+      const mat = new THREE.MeshLambertMaterial({
+        color: new THREE.Color(hex)
+      });
+      this.distinctMaterials.set(blockId, mat);
+    }
+    return this.distinctMaterials.get(blockId);
+  }
+
+  getLegendData() {
+    const list = [];
+    for (const [blockId, instances] of this.blockInstances.entries()) {
+      if (instances.length === 0) continue;
+      const info = this.mcDataService.getBlockInfo(blockId);
+      const hex = this.getDistinctColorHex(blockId);
+      list.push({
+        blockId,
+        displayName: info.displayName || blockId,
+        colorHex: hex,
+        count: instances.length
+      });
+    }
+    list.sort((a, b) => b.count - a.count);
+    return list;
+  }
+
   rebuildMeshes() {
     // Remove existing meshes from scene
     for (const mesh of this.instancedMeshes.values()) {
@@ -61,11 +118,14 @@ export class ChunkRenderer {
 
     // Group non-culled blocks within Y slice by block ID
     for (const b of this.allBlocks) {
-      if (b.y > this.currentSliceY) {
-        continue;
+      if (this.singleLayerOnly) {
+        if (b.y !== this.currentSliceY) continue;
+      } else {
+        if (b.y > this.currentSliceY) continue;
       }
 
-      if (this.enableCulling && this.isBlockFullyOccluded(b)) {
+      // In singleLayerOnly mode, we skip culling so interior floor tiles are visible
+      if (this.enableCulling && !this.singleLayerOnly && this.isBlockFullyOccluded(b)) {
         totalCulled++;
         continue;
       }
@@ -83,7 +143,10 @@ export class ChunkRenderer {
     for (const [blockId, instances] of this.blockInstances.entries()) {
       if (instances.length === 0) continue;
 
-      const materials = this.textureManager.getMaterialForBlock(blockId);
+      const materials = this.distinctColorsMode
+        ? this.getDistinctMaterialForBlock(blockId)
+        : this.textureManager.getMaterialForBlock(blockId);
+
       const instMesh = new THREE.InstancedMesh(this.geometry, materials, instances.length);
       instMesh.castShadow = true;
       instMesh.receiveShadow = true;
