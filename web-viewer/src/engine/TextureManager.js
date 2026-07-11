@@ -6,6 +6,10 @@ export class TextureManager {
     this.materialCache = new Map();
   }
 
+  clearCache() {
+    this.materialCache.clear();
+  }
+
   getMaterialForBlock(blockId) {
     if (this.materialCache.has(blockId)) {
       return this.materialCache.get(blockId);

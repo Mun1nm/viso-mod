@@ -39,14 +39,6 @@ class App {
   }
 
   initUI() {
-    // 1. Sample Selection Dropdown (hidden but functional)
-    const sampleSelect = document.getElementById('sample-select');
-    if (sampleSelect) {
-      sampleSelect.addEventListener('change', (e) => {
-        this.loadSample(e.target.value);
-      });
-    }
-
     // 2. File Upload Button
     const fileInput = document.getElementById('file-input');
     fileInput.addEventListener('change', async (e) => {
@@ -256,6 +248,7 @@ class App {
   loadStructureData(data) {
     this.currentStructure = data;
     this.mcDataService.registerPalette(data.palette);
+    this.textureManager.clearCache(); // <-- Clear previous textures!
 
     const dims = data.metadata.dimensions;
     const stats = this.chunkRenderer.loadStructure(data);
