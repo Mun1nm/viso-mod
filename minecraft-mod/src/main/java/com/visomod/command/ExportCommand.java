@@ -73,7 +73,7 @@ public class ExportCommand {
 
     private static void sendSuccessMessage(CommandSourceStack source, StructureExporter.ExportResult result) {
         File htmlFile = result.htmlFile;
-        ClickEvent clickEvent = new ClickEvent.OpenFile(htmlFile.getAbsolutePath());
+        ClickEvent clickEvent = new ClickEvent.OpenUrl(htmlFile.toURI());
 
         Component fileLink = Component.literal("[Clique para abrir no navegador]")
                 .withStyle(style -> style
