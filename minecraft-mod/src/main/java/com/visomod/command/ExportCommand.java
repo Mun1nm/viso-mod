@@ -73,7 +73,7 @@ public class ExportCommand {
 
     private static void sendSuccessMessage(CommandSourceStack source, StructureExporter.ExportResult result) {
         File htmlFile = result.htmlFile;
-        ClickEvent clickEvent = new ClickEvent.OpenUrl(htmlFile.toURI());
+        ClickEvent clickEvent = new ClickEvent.OpenFile(htmlFile.getAbsolutePath());
 
         Component fileLink = Component.literal("[Clique para abrir no navegador]")
                 .withStyle(style -> style
@@ -81,18 +81,21 @@ public class ExportCommand {
                         .withUnderlined(true)
                         .withClickEvent(clickEvent));
 
-        source.sendSuccess(() -> Component.literal("[VisoMod] ")
+        Component message = Component.literal("[VisoMod] ")
                 .withStyle(ChatFormatting.GOLD)
                 .append(Component.literal("Estrutura exportada com sucesso! ")
                         .withStyle(ChatFormatting.GREEN))
                 .append(Component.literal(result.totalBlocks + " blocos -> ")
                         .withStyle(ChatFormatting.YELLOW))
-                .append(fileLink), false);
+                .append(fileLink);
+        
+        Minecraft.getInstance().player.sendSystemMessage(message);
     }
 
     private static void sendErrorMessage(CommandSourceStack source, Exception e) {
-        source.sendFailure(Component.literal("[Erro VisoMod] Falha na exportação: " + e.getMessage())
-                .withStyle(ChatFormatting.RED));
+        Component message = Component.literal("[Erro VisoMod] Falha na exportação: " + e.getMessage())
+                .withStyle(ChatFormatting.RED);
+        Minecraft.getInstance().player.sendSystemMessage(message);
         e.printStackTrace();
     }
 }
