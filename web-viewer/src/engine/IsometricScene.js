@@ -111,10 +111,10 @@ export class IsometricScene {
 
   /** Resize & reposition the overlay grid to match the loaded structure. */
   setOverlayGridForStructure(dimensions, sliceY) {
-    const w = dimensions.x;
-    const d = dimensions.z;
-    const cx = (w - 1) / 2;
-    const cz = (d - 1) / 2;
+    const size = Math.max(dimensions.x, dimensions.z);
+    // Align the square GridHelper so its first line falls exactly on -0.5 for both axes
+    const cx = (size - 1) / 2;
+    const cz = (size - 1) / 2;
 
     // Dispose old, create new
     this.scene.remove(this.overlayGrid);
@@ -174,13 +174,18 @@ export class IsometricScene {
 
   centerOnStructure(dimensions) {
     // Center point is half of dimensions
-    this.targetCenter.set(
+    this.targetCenter = new THREE.Vector3(
       (dimensions.x - 1) / 2,
-      (dimensions.y - 1) / 4,
+      (dimensions.y - 1) / 2,
       (dimensions.z - 1) / 2
     );
 
-    this.gridHelper.position.set(this.targetCenter.x, -0.55, this.targetCenter.z);
+    // Floor grid lines must fall on half-integers (-0.5, 0.5...) to frame blocks correctly.
+    // Since GridHelper(60,60) draws lines at integer offsets from its center,
+    // its center must be placed at a half-integer coordinate.
+    const gridX = Math.floor(this.targetCenter.x) + 0.5;
+    const gridZ = Math.floor(this.targetCenter.z) + 0.5;
+    this.gridHelper.position.set(gridX, -0.55, gridZ);
 
     // Auto-fit zoom based on structure bounding radius
     const maxDim = Math.max(dimensions.x, dimensions.y, dimensions.z);
@@ -271,6 +276,56 @@ export class IsometricScene {
       e.preventDefault();
       const delta = e.deltaY > 0 ? 1.5 : -1.5;
       this.setZoom(delta);
+    }, { passive: false });
+
+    // Touch support for Pan and Pinch-Zoom
+    let initialPinchDist = null;
+    let initialZoom = null;
+
+    this.container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        prevX = e.touches[0].clientX;
+        prevY = e.touches[0].clientY;
+      } else if (e.touches.length === 2) {
+        isDragging = false;
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        initialPinchDist = Math.sqrt(dx * dx + dy * dy);
+        initialZoom = this.zoom;
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => {
+      isDragging = false;
+      initialPinchDist = null;
+    });
+
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && isDragging) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - prevX;
+        const dy = e.touches[0].clientY - prevY;
+        prevX = e.touches[0].clientX;
+        prevY = e.touches[0].clientY;
+
+        const factor = (this.zoom * 2) / this.height;
+        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
+        const up = new THREE.Vector3(0, 1, 0).applyQuaternion(this.camera.quaternion);
+        this.targetCenter.addScaledVector(right, -dx * factor);
+        this.targetCenter.addScaledVector(up, dy * factor);
+        this.updateCameraPosition();
+      } else if (e.touches.length === 2 && initialPinchDist !== null) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0) {
+          const zoomFactor = initialPinchDist / dist;
+          this.zoom = Math.max(4, Math.min(80, initialZoom * zoomFactor));
+          this.updateCameraProjection();
+        }
+      }
     }, { passive: false });
   }
 
