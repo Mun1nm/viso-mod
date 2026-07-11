@@ -121,7 +121,7 @@ export class IsometricScene {
     this.overlayGrid.geometry.dispose();
     this.overlayGrid.material.dispose();
 
-    this.overlayGrid = this._makeOverlayGrid(w, d, cx, cz, sliceY + 0.51);
+    this.overlayGrid = this._makeOverlayGrid(dimensions.x, dimensions.z, cx, cz, sliceY + 0.51);
     this.overlayGrid.visible = this.is2DMode && this._gridVisible;
     this.scene.add(this.overlayGrid);
   }
