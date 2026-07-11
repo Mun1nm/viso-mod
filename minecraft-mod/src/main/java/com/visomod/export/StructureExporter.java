@@ -25,10 +25,15 @@ public class StructureExporter {
         if (!sm.hasCompleteSelection()) {
             throw new IllegalStateException("Seleção incompleta. Defina os pontos A e B com a Varinha de Exportação.");
         }
+        return exportSelection(world, fileName, sm.getMinPos(), sm.getMaxPos());
+    }
 
-        BlockPos min = sm.getMinPos();
-        BlockPos max = sm.getMaxPos();
-        int[] dims = sm.getDimensions();
+    public static ExportResult exportSelection(Level world, String fileName, BlockPos min, BlockPos max) throws IOException {
+        int[] dims = new int[]{
+                max.getX() - min.getX() + 1,
+                max.getY() - min.getY() + 1,
+                max.getZ() - min.getZ() + 1
+        };
 
         ExportData exportData = new ExportData(
                 "26.2",
