@@ -24,6 +24,10 @@ class App {
     const embeddedEl = document.getElementById('embedded-structure-data');
     if (embeddedEl && embeddedEl.textContent && !embeddedEl.textContent.includes('EMBEDDED_STRUCTURE_DATA')) {
       try {
+        // HIDE upload controls on the generated local HTML
+        const headerControls = document.querySelector('.header-controls');
+        if (headerControls) headerControls.style.display = 'none';
+        
         const rawJson = JSON.parse(embeddedEl.textContent);
         const normalized = ExportLoader.normalizeStructure(rawJson);
         this.loadStructureData(normalized);
