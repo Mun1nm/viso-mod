@@ -194,6 +194,7 @@ public class EntityModelExtractor {
         private float[] currentPositions = new float[12];
         private float[] currentUVs = new float[8];
         private int vertexCount = 0;
+        private int currentTint = -1;
 
         public FakeVertexConsumer(List<ExportData.QuadData> quadsOut, String texName) {
             this.quadsOut = quadsOut;
@@ -212,11 +213,13 @@ public class EntityModelExtractor {
 
         @Override
         public VertexConsumer setColor(int r, int g, int b, int a) {
+            currentTint = (a << 24) | (r << 16) | (g << 8) | b;
             return this;
         }
 
         @Override
         public VertexConsumer setColor(int argb) {
+            currentTint = argb;
             return this;
         }
 
@@ -243,8 +246,9 @@ public class EntityModelExtractor {
         public VertexConsumer setNormal(float x, float y, float z) {
             vertexCount++;
             if (vertexCount == 4) {
-                quadsOut.add(new ExportData.QuadData(currentPositions.clone(), currentUVs.clone(), texName, -1));
+                quadsOut.add(new ExportData.QuadData(currentPositions.clone(), currentUVs.clone(), texName, currentTint));
                 vertexCount = 0;
+                currentTint = -1;
             }
             return this;
         }
