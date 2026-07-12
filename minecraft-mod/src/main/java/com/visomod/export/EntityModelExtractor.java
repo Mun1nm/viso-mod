@@ -67,7 +67,7 @@ public class EntityModelExtractor {
             }
             
             String texName = fallbackTex;
-            if (renderType != null) {
+            if (renderType != null && texName.equals("default")) {
                 try {
                     java.lang.reflect.Field stateField = renderType.getClass().getDeclaredField("state");
                     stateField.setAccessible(true);
