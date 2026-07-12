@@ -191,9 +191,18 @@ export class ChunkRenderer {
 
       // If geometry has vertex colors (biome tint / redstone power), enable them on all materials
       const hasVertexColors = !!geometry.attributes.color;
-      const finalMaterials = (hasVertexColors && !this.distinctColorsMode)
+      let finalMaterials = (hasVertexColors && !this.distinctColorsMode)
         ? (Array.isArray(materials) ? materials.map(m => { const c = m.clone(); c.vertexColors = true; return c; }) : (() => { const c = materials.clone(); c.vertexColors = true; return c; })())
         : materials;
+
+      if (this.distinctColorsMode && geometry.groups && geometry.groups.length > 0) {
+          let maxIndex = 0;
+          for (const g of geometry.groups) maxIndex = Math.max(maxIndex, g.materialIndex || 0);
+          if (maxIndex > 0) {
+              const baseMat = Array.isArray(finalMaterials) ? finalMaterials[0] : finalMaterials;
+              finalMaterials = new Array(maxIndex + 1).fill(baseMat);
+          }
+      }
 
       const instMesh = new THREE.InstancedMesh(geometry, finalMaterials, instances.length);
       instMesh.castShadow = true;
@@ -314,7 +323,17 @@ export class ChunkRenderer {
 
       const info = this.mcDataService.getBlockInfo(blockId);
       const geometry = this.getGeometryForBlock(info);
-      const shadowMat = this.getShadowMaterial(blockId);
+      let shadowMat = this.getShadowMaterial(blockId);
+      
+      if (this.distinctColorsMode && geometry.groups && geometry.groups.length > 0) {
+          let maxIndex = 0;
+          for (const g of geometry.groups) maxIndex = Math.max(maxIndex, g.materialIndex || 0);
+          if (maxIndex > 0) {
+              const baseMat = Array.isArray(shadowMat) ? shadowMat[0] : shadowMat;
+              shadowMat = new Array(maxIndex + 1).fill(baseMat);
+          }
+      }
+
       const shadowMesh = new THREE.InstancedMesh(geometry, shadowMat, instances.length);
       shadowMesh.castShadow = false;
       shadowMesh.receiveShadow = false;
