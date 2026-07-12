@@ -88,11 +88,16 @@ export class ChunkRenderer {
   }
 
   getDistinctColorHex(blockId) {
-    if (!this.blockColorMap.has(blockId)) {
+    // Strip block state properties (e.g. "minecraft:redstone_wire;power=15" -> "minecraft:redstone_wire")
+    let baseId = blockId.split(';')[0];
+    // Alias flowing variants to their canonical id
+    if (baseId === 'minecraft:flowing_water') baseId = 'minecraft:water';
+    if (baseId === 'minecraft:flowing_lava') baseId = 'minecraft:lava';
+    if (!this.blockColorMap.has(baseId)) {
       const idx = this.blockColorMap.size % HIGH_CONTRAST_PALETTE.length;
-      this.blockColorMap.set(blockId, HIGH_CONTRAST_PALETTE[idx]);
+      this.blockColorMap.set(baseId, HIGH_CONTRAST_PALETTE[idx]);
     }
-    return this.blockColorMap.get(blockId);
+    return this.blockColorMap.get(baseId);
   }
 
   getDistinctMaterialForBlock(blockId) {
@@ -107,18 +112,20 @@ export class ChunkRenderer {
   }
 
   getLegendData() {
-    const list = [];
+    const map = new Map();
     for (const [blockId, instances] of this.blockInstances.entries()) {
       if (instances.length === 0) continue;
-      const info = this.mcDataService.getBlockInfo(blockId);
-      const hex = this.getDistinctColorHex(blockId);
-      list.push({
-        blockId,
-        displayName: info.displayName || blockId,
-        colorHex: hex,
-        count: instances.length
-      });
+      let baseId = blockId.split(';')[0];
+      if (baseId === 'minecraft:flowing_water') baseId = 'minecraft:water';
+      if (baseId === 'minecraft:flowing_lava') baseId = 'minecraft:lava';
+      const hex = this.getDistinctColorHex(baseId);
+      const displayName = baseId.replace('minecraft:', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      if (!map.has(baseId)) {
+        map.set(baseId, { blockId: baseId, displayName, colorHex: hex, count: 0 });
+      }
+      map.get(baseId).count += instances.length;
     }
+    const list = Array.from(map.values());
     list.sort((a, b) => b.count - a.count);
     return list;
   }
@@ -178,7 +185,13 @@ export class ChunkRenderer {
 
       const geometry = this.getGeometryForBlock(info, texMap);
 
-      const instMesh = new THREE.InstancedMesh(geometry, materials, instances.length);
+      // If geometry has vertex colors (biome tint / redstone power), enable them on all materials
+      const hasVertexColors = !!geometry.attributes.color;
+      const finalMaterials = (hasVertexColors && !this.distinctColorsMode)
+        ? (Array.isArray(materials) ? materials.map(m => { const c = m.clone(); c.vertexColors = true; return c; }) : (() => { const c = materials.clone(); c.vertexColors = true; return c; })())
+        : materials;
+
+      const instMesh = new THREE.InstancedMesh(geometry, finalMaterials, instances.length);
       instMesh.castShadow = true;
       instMesh.receiveShadow = true;
       instMesh.userData = { blockId };
@@ -357,12 +370,9 @@ export class ChunkRenderer {
     const nb = this.voxelGrid.get(this.packCoord(x, y, z));
     if (!nb) return false;
     const info = this.mcDataService.getBlockInfo(nb.id);
-    if (info.transparent) return false;
-    // Slabs, stairs, walls are never fully opaque cubes
-    if (info.name && (info.name.includes('slab') || info.name.includes('stairs') || info.name.includes('wall') || info.name.includes('fence'))) {
-      return false;
-    }
-    return true;
+    // Use server-computed isSolidRender flag when available, otherwise fall back to !transparent
+    if (info.isOpaque !== undefined) return info.isOpaque;
+    return !info.transparent;
   }
 
   getGeometryForBlock(info, texMap) {
@@ -378,17 +388,27 @@ export class ChunkRenderer {
         const positions = [];
         const uvs = [];
         const indices = [];
+        const colors = [];
         
         let vIndex = 0;
         let lastTex = null;
         let groupStart = 0;
         let groupCount = 0;
+        let hasAnyTint = false;
 
         for (const q of info.model.quads) {
+            // Read tint: -1 or undefined means no tint (pure white)
+            const tint = (q.tint !== undefined && q.tint !== -1) ? q.tint : 0xFFFFFF;
+            if (tint !== 0xFFFFFF) hasAnyTint = true;
+            const r = ((tint >> 16) & 0xFF) / 255.0;
+            const g = ((tint >> 8)  & 0xFF) / 255.0;
+            const b = ( tint        & 0xFF) / 255.0;
+
             // Apply Minecraft space (-X, Y, -Z) to ThreeJS space by translating by -0.5 on each axis to center block at (0,0,0)
             for (let i = 0; i < 4; i++) {
                 positions.push(q.pos[i*3] - 0.5, q.pos[i*3+1] - 0.5, q.pos[i*3+2] - 0.5);
                 uvs.push(q.uv[i*2], q.uv[i*2+1]);
+                colors.push(r, g, b);
             }
             
             // Standard quad triangulation: 0,1,2 and 0,2,3
@@ -414,6 +434,9 @@ export class ChunkRenderer {
 
         geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        if (hasAnyTint) {
+            geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        }
         geom.setIndex(indices);
         geom.computeVertexNormals();
 

@@ -107,7 +107,7 @@ export class TextureManager {
     return 'noise';
   }
 
-  makeStandardMat(texture, transparent = false, isProcedural = false) {
+  makeStandardMat(texture, transparent = false, isProcedural = false, vertexColors = false) {
     return new THREE.MeshStandardMaterial({
       map: texture,
       roughness: 0.82,
@@ -115,7 +115,8 @@ export class TextureManager {
       transparent: transparent,
       opacity: (transparent && isProcedural) ? 0.65 : 1.0,
       alphaTest: 0.1,
-      side: THREE.FrontSide
+      side: THREE.FrontSide,
+      vertexColors: vertexColors
     });
   }
 

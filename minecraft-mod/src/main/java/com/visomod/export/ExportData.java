@@ -142,12 +142,14 @@ public class ExportData {
         public String name;
         public Map<String, String> properties;
         public ModelData model;
+        public boolean isOpaque;
 
-        public PaletteEntry(int id, String name, Map<String, String> properties, ModelData model) {
+        public PaletteEntry(int id, String name, Map<String, String> properties, ModelData model, boolean isOpaque) {
             this.id = id;
             this.name = name;
             this.properties = properties;
             this.model = model;
+            this.isOpaque = isOpaque;
         }
     }
 

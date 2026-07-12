@@ -20,6 +20,7 @@ export class MinecraftDataService {
     let baseId = cleanId;
     let properties = null;
     let model = null;
+    let isOpaque = undefined; // will be read from palette if available
     let displayName = cleanId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
     if (cleanId.startsWith('palette_')) {
@@ -29,11 +30,8 @@ export class MinecraftDataService {
             baseId = pEntry.name.replace('minecraft:', '');
             properties = pEntry.properties;
             model = pEntry.model;
-            displayName = baseId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            if (properties) {
-                const propsStr = Object.entries(properties).map(([k,v]) => `${k}=${v}`).join(', ');
-                if (propsStr) displayName += ` [${propsStr}]`;
-            }
+            isOpaque = pEntry.isOpaque; // server-computed isSolidRender()
+            displayName = baseId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); // clean, no state suffix
         }
     }
 
@@ -45,6 +43,7 @@ export class MinecraftDataService {
       hardness: reg ? reg.hardness : 1.5,
       material: reg ? reg.material : 'rock',
       transparent: reg ? reg.transparent : (baseId.includes('glass') || baseId.includes('leaves') || baseId.includes('water')),
+      isOpaque: isOpaque,
       isWater: baseId.includes('water'),
       isGlass: baseId.includes('glass'),
       isLeaves: baseId.includes('leaves'),
@@ -106,6 +105,9 @@ export class MinecraftDataService {
 
     if (colorMap[cleanId]) return colorMap[cleanId];
 
+    if (cleanId.includes('redstone_wire') || cleanId.includes('redstone_torch') || cleanId.includes('redstone_lamp')) return '#c41c1c';
+    if (cleanId.includes('grass') && !cleanId.includes('block')) return '#5c8f38'; // short grass, tall grass
+    if (cleanId.includes('fern') || cleanId.includes('vine') || cleanId.includes('lily_pad')) return '#366e2c';
     if (cleanId.includes('wood') || cleanId.includes('log')) return '#6d5032';
     if (cleanId.includes('plank')) return '#b8945f';
     if (cleanId.includes('leaf') || cleanId.includes('leaves')) return '#38782a';

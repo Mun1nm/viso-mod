@@ -182,7 +182,7 @@ public class StructureExporter {
                         }
 
                         exportData.palette.put(String.valueOf(paletteId),
-                                new ExportData.PaletteEntry(paletteId, blockId, properties, modelData));
+                                new ExportData.PaletteEntry(paletteId, blockId, properties, modelData, state.isSolidRender()));
                     } else {
                         paletteId = blockToPaletteId.get(stateKey);
                     }
