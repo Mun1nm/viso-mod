@@ -184,6 +184,16 @@ public class StructureExporter {
                             com.visomod.VisoMod.LOGGER.error("Failed to extract BakedModel for " + stateKey, e);
                         }
 
+                        if (quads.isEmpty() && state.hasBlockEntity()) {
+                            net.minecraft.world.level.block.entity.BlockEntity be = world.getBlockEntity(pos);
+                            if (be != null) {
+                                java.util.List<ExportData.QuadData> entityQuads = EntityModelExtractor.extractEntity(be, state, textures);
+                                if (entityQuads != null && !entityQuads.isEmpty()) {
+                                    quads.addAll(entityQuads);
+                                }
+                            }
+                        }
+
                         ExportData.ModelData modelData = null;
                         if (!quads.isEmpty()) {
                             modelData = new ExportData.ModelData(textures, quads);
