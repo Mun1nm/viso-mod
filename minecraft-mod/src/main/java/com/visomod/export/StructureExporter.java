@@ -20,15 +20,15 @@ public class StructureExporter {
 
 
 
-    public static ExportResult exportSelection(Level world, String fileName) throws IOException {
+    public static ExportResult exportSelection(Level world, String fileName, boolean generateDebugJson) throws IOException {
         SelectionManager sm = SelectionManager.getInstance();
         if (!sm.hasCompleteSelection()) {
             throw new IllegalStateException("Seleção incompleta. Defina os pontos A e B com a Varinha de Exportação.");
         }
-        return exportSelection(world, fileName, sm.getMinPos(), sm.getMaxPos());
+        return exportSelection(world, fileName, sm.getMinPos(), sm.getMaxPos(), generateDebugJson);
     }
 
-    public static ExportResult exportSelection(Level world, String fileName, BlockPos min, BlockPos max) throws IOException {
+    public static ExportResult exportSelection(Level world, String fileName, BlockPos min, BlockPos max, boolean generateDebugJson) throws IOException {
         int[] dims = new int[]{
                 max.getX() - min.getX() + 1,
                 max.getY() - min.getY() + 1,
@@ -213,8 +213,10 @@ public class StructureExporter {
 
         String rawJson = exportData.toJson(true);
         File rawJsonFile = new File(exportsDir, fileName + ".json");
-        try (FileWriter writer = new FileWriter(rawJsonFile, StandardCharsets.UTF_8)) {
-            writer.write(rawJson);
+        if (generateDebugJson) {
+            try (FileWriter writer = new FileWriter(rawJsonFile, StandardCharsets.UTF_8)) {
+                writer.write(rawJson);
+            }
         }
 
         File gzipFile = new File(exportsDir, fileName + ".json.gz");

@@ -18,24 +18,36 @@ import java.io.File;
 public class ExportCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("exportar")
+        dispatcher.register(Commands.literal("export")
                 .requires(source -> true)
-                // /exportar <nome_arquivo> (uses wand selection)
+                // /export <nome_arquivo>
                 .then(Commands.argument("nome_arquivo", StringArgumentType.word())
-                        .executes(ExportCommand::executeExportSelection))
-                // /exportar <pos1> <pos2> <nome_arquivo> (uses specified coords)
+                        .executes(context -> executeExportSelection(context, false)))
+                // /export <pos1> <pos2> <nome_arquivo>
                 .then(Commands.argument("pos1", BlockPosArgument.blockPos())
                         .then(Commands.argument("pos2", BlockPosArgument.blockPos())
                                 .then(Commands.argument("nome_arquivo_coord", StringArgumentType.word())
-                                        .executes(ExportCommand::executeExportCoords))))
+                                        .executes(context -> executeExportCoords(context, false)))))
+        );
+
+        dispatcher.register(Commands.literal("exportdebug")
+                .requires(source -> true)
+                // /exportdebug <nome_arquivo>
+                .then(Commands.argument("nome_arquivo", StringArgumentType.word())
+                        .executes(context -> executeExportSelection(context, true)))
+                // /exportdebug <pos1> <pos2> <nome_arquivo>
+                .then(Commands.argument("pos1", BlockPosArgument.blockPos())
+                        .then(Commands.argument("pos2", BlockPosArgument.blockPos())
+                                .then(Commands.argument("nome_arquivo_coord", StringArgumentType.word())
+                                        .executes(context -> executeExportCoords(context, true)))))
         );
     }
 
-    private static int executeExportSelection(CommandContext<CommandSourceStack> context) {
+    private static int executeExportSelection(CommandContext<CommandSourceStack> context, boolean generateDebugJson) {
         String fileName = StringArgumentType.getString(context, "nome_arquivo");
         try {
             StructureExporter.ExportResult result = StructureExporter.exportSelection(
-                    Minecraft.getInstance().level, fileName
+                    Minecraft.getInstance().level, fileName, generateDebugJson
             );
             sendSuccessMessage(context.getSource(), result);
         } catch (Exception e) {
@@ -44,7 +56,7 @@ public class ExportCommand {
         return 1;
     }
 
-    private static int executeExportCoords(CommandContext<CommandSourceStack> context) {
+    private static int executeExportCoords(CommandContext<CommandSourceStack> context, boolean generateDebugJson) {
         String fileName = StringArgumentType.getString(context, "nome_arquivo_coord");
         try {
             BlockPos pos1 = BlockPosArgument.getLoadedBlockPos(context, "pos1");
@@ -62,7 +74,7 @@ public class ExportCommand {
             );
 
             StructureExporter.ExportResult result = StructureExporter.exportSelection(
-                    Minecraft.getInstance().level, fileName, min, max
+                    Minecraft.getInstance().level, fileName, min, max, generateDebugJson
             );
             sendSuccessMessage(context.getSource(), result);
         } catch (Exception e) {
