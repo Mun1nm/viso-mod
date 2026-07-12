@@ -73,12 +73,16 @@ public class ExportData {
                         sb.append(q.uv[i]);
                         if (i < q.uv.length - 1) sb.append(",");
                     }
-                    sb.append("],\"texture\":\"").append(q.texture).append("\"}");
+                    sb.append("],\"texture\":\"").append(q.texture).append("\"");
+                    if (q.tint != -1) {
+                        sb.append(",\"tint\":").append(q.tint);
+                    }
+                    sb.append("}");
                     if (qCount++ < entry.getValue().model.quads.size() - 1) sb.append(",");
                 }
                 sb.append("]}");
             }
-            
+            sb.append(",\"isOpaque\":").append(entry.getValue().isOpaque);
             sb.append("}");
             if (pIndex++ < palette.size() - 1) sb.append(",");
             sb.append(nl);
@@ -167,11 +171,13 @@ public class ExportData {
         public float[] pos;
         public float[] uv;
         public String texture;
+        public int tint;
 
-        public QuadData(float[] pos, float[] uv, String texture) {
+        public QuadData(float[] pos, float[] uv, String texture, int tint) {
             this.pos = pos;
             this.uv = uv;
             this.texture = texture;
+            this.tint = tint;
         }
     }
 

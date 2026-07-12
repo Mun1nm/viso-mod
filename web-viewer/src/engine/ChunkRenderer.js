@@ -88,11 +88,11 @@ export class ChunkRenderer {
   }
 
   getDistinctColorHex(blockId) {
-    // Strip block state properties (e.g. "minecraft:redstone_wire;power=15" -> "minecraft:redstone_wire")
-    let baseId = blockId.split(';')[0];
-    // Alias flowing variants to their canonical id
+    const info = this.mcDataService.getBlockInfo(blockId);
+    let baseId = 'minecraft:' + info.name;
     if (baseId === 'minecraft:flowing_water') baseId = 'minecraft:water';
     if (baseId === 'minecraft:flowing_lava') baseId = 'minecraft:lava';
+    
     if (!this.blockColorMap.has(baseId)) {
       const idx = this.blockColorMap.size % HIGH_CONTRAST_PALETTE.length;
       this.blockColorMap.set(baseId, HIGH_CONTRAST_PALETTE[idx]);
@@ -115,11 +115,15 @@ export class ChunkRenderer {
     const map = new Map();
     for (const [blockId, instances] of this.blockInstances.entries()) {
       if (instances.length === 0) continue;
-      let baseId = blockId.split(';')[0];
+      
+      const info = this.mcDataService.getBlockInfo(blockId);
+      let baseId = 'minecraft:' + info.name;
       if (baseId === 'minecraft:flowing_water') baseId = 'minecraft:water';
       if (baseId === 'minecraft:flowing_lava') baseId = 'minecraft:lava';
-      const hex = this.getDistinctColorHex(baseId);
+      
+      const hex = this.getDistinctColorHex(blockId); // getDistinctColorHex already handles mapping correctly
       const displayName = baseId.replace('minecraft:', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      
       if (!map.has(baseId)) {
         map.set(baseId, { blockId: baseId, displayName, colorHex: hex, count: 0 });
       }

@@ -168,7 +168,15 @@ public class StructureExporter {
                                                 }
                                             }
                                         }
-                                        quads.add(new ExportData.QuadData(qPos, uv, texName));
+                                        int tintIndex = q.materialInfo() != null ? q.materialInfo().tintIndex() : -1;
+                                        int tintColor = -1;
+                                        if (tintIndex >= 0) {
+                                            java.util.List<net.minecraft.client.color.block.BlockTintSource> tintSources = net.minecraft.client.Minecraft.getInstance().getBlockColors().getTintSources(state);
+                                            if (tintSources != null && tintIndex < tintSources.size()) {
+                                                tintColor = tintSources.get(tintIndex).colorInWorld(state, net.minecraft.client.Minecraft.getInstance().level, pos);
+                                            }
+                                        }
+                                        quads.add(new ExportData.QuadData(qPos, uv, texName, tintColor));
                                     }
                                 }
                             }
