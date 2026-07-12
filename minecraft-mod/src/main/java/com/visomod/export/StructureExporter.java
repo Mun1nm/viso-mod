@@ -144,8 +144,10 @@ public class StructureExporter {
                                                             int height = (int) nativeImage.getClass().getMethod("getHeight").invoke(nativeImage);
                                                             int[] pixels = (int[]) nativeImage.getClass().getMethod("getPixelsABGR").invoke(nativeImage);
 
-                                                            java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-                                                            for (int py = 0; py < height; py++) {
+                                                            int frameHeight = height;
+                                                            if (height > width && height % width == 0) frameHeight = width;
+                                                            java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(width, frameHeight, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                                                            for (int py = 0; py < frameHeight; py++) {
                                                                 for (int px = 0; px < width; px++) {
                                                                     int abgr = pixels[py * width + px];
                                                                     int a = (abgr >> 24) & 0xFF;
