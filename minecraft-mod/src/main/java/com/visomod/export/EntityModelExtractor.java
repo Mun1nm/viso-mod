@@ -68,16 +68,42 @@ public class EntityModelExtractor {
             
             String texName = fallbackTex;
             if (renderType != null) {
-                String rtStr = renderType.toString();
-                Pattern p = Pattern.compile("Optional\\[(.*?)\\]");
-                Matcher m = p.matcher(rtStr);
-                if (m.find()) {
-                    texName = m.group(1);
-                } else {
-                    Pattern p2 = Pattern.compile("texture\\[(.*?)\\]");
-                    Matcher m2 = p2.matcher(rtStr);
-                    if (m2.find()) {
-                        texName = m2.group(1);
+                try {
+                    java.lang.reflect.Field stateField = renderType.getClass().getDeclaredField("state");
+                    stateField.setAccessible(true);
+                    Object renderSetup = stateField.get(renderType);
+                    if (renderSetup != null) {
+                        java.lang.reflect.Field texturesField = renderSetup.getClass().getDeclaredField("textures");
+                        texturesField.setAccessible(true);
+                        java.util.Map<?, ?> texturesObj = (java.util.Map<?, ?>) texturesField.get(renderSetup);
+                        if (texturesObj != null && !texturesObj.isEmpty()) {
+                            Object textureBinding = texturesObj.values().iterator().next();
+                            if (textureBinding != null) {
+                                java.lang.reflect.Method locationMethod = textureBinding.getClass().getDeclaredMethod("location");
+                                locationMethod.setAccessible(true);
+                                Object locationObj = locationMethod.invoke(textureBinding);
+                                if (locationObj != null) {
+                                    texName = locationObj.toString();
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    // Ignore and fallback
+                }
+
+                if (texName.equals(fallbackTex)) {
+                    String rtStr = renderType.toString();
+                    Pattern p = Pattern.compile("Optional\\[(.*?)\\]");
+                    Matcher m = p.matcher(rtStr);
+                    if (m.find()) {
+                        texName = m.group(1);
+                    } else {
+                        Pattern p2 = Pattern.compile("texture\\[(.*?)\\]");
+                        Matcher m2 = p2.matcher(rtStr);
+                        if (m2.find()) {
+                            texName = m2.group(1);
+                        }
                     }
                 }
             }
