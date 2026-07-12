@@ -23,6 +23,6 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots or a GIF to help explain your problem.
 
 **Environment:**
- - Minecraft Version: [e.g. 1.21.4 (26.2)]
+ - Minecraft Version: [e.g. 26.2 (26.2)]
  - Viso-Mod Version: [e.g. 1.6.4]
  - Browser for Web Viewer: [e.g. Chrome, Firefox]

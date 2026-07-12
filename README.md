@@ -1,8 +1,8 @@
 <div align="center">
   <h1>Viso-Mod</h1>
-  <p><b>Mine-to-Web Isometric Exporter for Minecraft (Fabric 1.21.4)</b></p>
+  <p><b>Mine-to-Web Isometric Exporter for Minecraft (Fabric 26.2)</b></p>
   
-  ![Fabric](https://img.shields.io/badge/Fabric-1.21.4-blue?style=for-the-badge)
+  ![Fabric](https://img.shields.io/badge/Fabric-26.2-blue?style=for-the-badge)
   ![Three.js](https://img.shields.io/badge/Three.js-WebGL-black?style=for-the-badge)
   ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 </div>
@@ -38,38 +38,35 @@
 
 ## 🚀 Quick Start
 
-Viso-Mod is split into two parts: the **Minecraft Mod** (to export your builds) and the **Web Viewer** (to see them in 3D in your browser).
+Viso-Mod is split into two parts: the **Minecraft Mod** (to export your builds) and the **Online Web Viewer** (to see them in 3D in your browser).
 
 ### 1. The Minecraft Mod (Exporting)
-Download the latest `.jar` from the [Releases folder](releases/) and place it in your `mods/` directory (requires Fabric for Minecraft 1.21.4 - v26.2).
+Download the latest `.jar` from the **[Releases Page](https://github.com/Mun1nm/viso-mod/releases/latest)** and place it in your `mods/` directory (requires Fabric for Minecraft 26.2).
 
 **How to export a structure:**
 1. Grab the **Export Wand** from your creative inventory (Tools tab).
 2. **Left-Click** a block to set Point A.
 3. **Right-Click** a block to set Point B.
-4. Type `/exportar <name>` in chat (e.g., `/exportar my_castle`).
+4. Type `/export <name>` in chat (e.g., `/export my_castle`).
 5. Your structure is saved at `run/exports/my_castle.json.gz`!
 
-### 2. The Web Viewer (Viewing)
-The web viewer is a lightweight Three.js + Vite app.
+> **Developer Tip:** If you want to see the raw text data instead of a compressed `.gz` file for debugging, you can use the command `/exportdebug <name>`. It generates a plain, uncompressed `.json` file!
 
-1. Open the `web-viewer/` folder in your terminal.
-2. Install dependencies and start the local server:
-   ```bash
-   npm install
-   npm run dev
-   ```
-3. Open `http://localhost:3000` in your browser.
-4. Drag and drop your `.json.gz` file into the viewer and enjoy!
+### 2. The Web Viewer (Viewing)
+You don't need to install anything to view your exports! Simply open the official hosted web viewer:
+
+👉 **[Launch Web Viewer](https://mun1nm.github.io/viso-mod/)**
+
+Once opened, just drag and drop your exported `.json.gz` (or `.json`) file into the browser window and enjoy!
 
 ---
 
 ## 🛠️ Project Structure & Development
 
-Want to contribute or tinker with the code? Check out the specific READMEs in each folder:
+Want to contribute, tinker with the code, or run the web viewer locally? Check out the specific READMEs in each folder:
 
 - [Minecraft Mod Source & Build Instructions](./minecraft-mod/README.md)
-- [Web Viewer Source & Setup Instructions](./web-viewer/README.md)
+- [Web Viewer Source & Local Setup Instructions](./web-viewer/README.md)
 
 ---
 

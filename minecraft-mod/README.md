@@ -1,4 +1,4 @@
-# Viso-Mod: Minecraft Exporter (Fabric 1.21.4)
+# Viso-Mod: Minecraft Exporter (Fabric 26.2)
 
 This folder contains the Java source code for the Minecraft Fabric mod that handles selecting regions in the world and extracting the geometry, textures, and block states into a highly optimized JSON payload.
 
@@ -6,7 +6,7 @@ This folder contains the Java source code for the Minecraft Fabric mod that hand
 
 1. **Prerequisites:**
    - Java 21+
-   - Minecraft 1.21.4 (Fabric API 26.2)
+   - Minecraft 26.2 (Fabric API 26.2)
 
 2. **Building the Mod:**
    To compile the `.jar` file yourself, run the following Gradle wrapper command in your terminal:
