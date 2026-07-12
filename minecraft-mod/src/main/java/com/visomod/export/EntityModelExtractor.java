@@ -84,7 +84,18 @@ public class EntityModelExtractor {
             
             if (!texName.equals("default") && !texturesMap.containsKey(texName)) {
                 try {
-                    Identifier texId = Identifier.tryParse(texName);
+                    String resourcePath = texName;
+                    if (!resourcePath.contains("textures/")) {
+                        String[] parts = resourcePath.split(":", 2);
+                        if (parts.length == 2) {
+                            resourcePath = parts[0] + ":textures/" + parts[1];
+                        }
+                    }
+                    if (!resourcePath.endsWith(".png")) {
+                        resourcePath += ".png";
+                    }
+
+                    Identifier texId = Identifier.tryParse(resourcePath);
                     if (texId != null) {
                         java.util.Optional<net.minecraft.server.packs.resources.Resource> res = Minecraft.getInstance().getResourceManager().getResource(texId);
                         if (res.isPresent()) {
