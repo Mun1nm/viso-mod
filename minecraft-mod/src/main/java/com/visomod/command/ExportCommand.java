@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.visomod.export.StructureExporter;
+import com.visomod.selection.SelectionManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
@@ -20,10 +21,8 @@ public class ExportCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("export")
                 .requires(source -> true)
-                // /export <nome_arquivo>
                 .then(Commands.argument("nome_arquivo", StringArgumentType.word())
                         .executes(context -> executeExportSelection(context, false)))
-                // /export <pos1> <pos2> <nome_arquivo>
                 .then(Commands.argument("pos1", BlockPosArgument.blockPos())
                         .then(Commands.argument("pos2", BlockPosArgument.blockPos())
                                 .then(Commands.argument("nome_arquivo_coord", StringArgumentType.word())
@@ -32,10 +31,8 @@ public class ExportCommand {
 
         dispatcher.register(Commands.literal("exportdebug")
                 .requires(source -> true)
-                // /exportdebug <nome_arquivo>
                 .then(Commands.argument("nome_arquivo", StringArgumentType.word())
                         .executes(context -> executeExportSelection(context, true)))
-                // /exportdebug <pos1> <pos2> <nome_arquivo>
                 .then(Commands.argument("pos1", BlockPosArgument.blockPos())
                         .then(Commands.argument("pos2", BlockPosArgument.blockPos())
                                 .then(Commands.argument("nome_arquivo_coord", StringArgumentType.word())
@@ -45,6 +42,13 @@ public class ExportCommand {
 
     private static int executeExportSelection(CommandContext<CommandSourceStack> context, boolean generateDebugJson) {
         String fileName = StringArgumentType.getString(context, "nome_arquivo");
+        if (!SelectionManager.getInstance().hasCompleteSelection()) {
+            Minecraft.getInstance().player.sendSystemMessage(
+                    Component.literal("[VisoMod] ").withStyle(ChatFormatting.RED)
+                    .append(Component.translatable("command.visomod.export.error.incomplete").withStyle(ChatFormatting.RED))
+            );
+            return 0;
+        }
         try {
             StructureExporter.ExportResult result = StructureExporter.exportSelection(
                     Minecraft.getInstance().level, fileName, generateDebugJson
@@ -87,7 +91,7 @@ public class ExportCommand {
         File htmlFile = result.htmlFile;
         ClickEvent clickEvent = new ClickEvent.OpenFile(htmlFile.getAbsolutePath());
 
-        Component fileLink = Component.literal("[Clique para abrir no navegador]")
+        Component fileLink = Component.translatable("command.visomod.export.open_browser")
                 .withStyle(style -> style
                         .withColor(ChatFormatting.AQUA)
                         .withUnderlined(true)
@@ -95,9 +99,9 @@ public class ExportCommand {
 
         Component message = Component.literal("[VisoMod] ")
                 .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal("Estrutura exportada com sucesso! ")
+                .append(Component.translatable("command.visomod.export.success")
                         .withStyle(ChatFormatting.GREEN))
-                .append(Component.literal(result.totalBlocks + " blocos -> ")
+                .append(Component.translatable("command.visomod.export.blocks", result.totalBlocks)
                         .withStyle(ChatFormatting.YELLOW))
                 .append(fileLink);
         
@@ -105,7 +109,7 @@ public class ExportCommand {
     }
 
     private static void sendErrorMessage(CommandSourceStack source, Exception e) {
-        Component message = Component.literal("[Erro VisoMod] Falha na exportação: " + e.getMessage())
+        Component message = Component.translatable("command.visomod.export.error", e.getMessage())
                 .withStyle(ChatFormatting.RED);
         Minecraft.getInstance().player.sendSystemMessage(message);
         e.printStackTrace();

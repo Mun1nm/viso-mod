@@ -772,3 +772,25 @@ body {
     display: none !important;
   }
 }
+
+/* Language Toggle */
+.lang-toggle {
+  display: flex;
+  gap: 8px;
+  margin-right: 16px;
+}
+.btn-lang {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-lang:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+}

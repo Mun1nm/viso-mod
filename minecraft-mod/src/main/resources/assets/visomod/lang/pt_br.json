@@ -1,4 +1,11 @@
 {
-  "item.visomod.export_wand": "Varinha de Exportação",
-  "itemGroup.visomod.tools": "Exportador Viso"
+  "command.visomod.export.error.incomplete": "Seleção incompleta! Defina os pontos A e B com a Varinha de Exportação primeiro.",
+  "command.visomod.export.open_browser": "[Clique para abrir no navegador]",
+  "command.visomod.export.success": "Estrutura exportada com sucesso! ",
+  "command.visomod.export.blocks": "%s blocos -> ",
+  "command.visomod.export.error": "Falha na exportação: %s",
+  "message.visomod.point_a_selected": "Ponto A selecionado em (%s, %s, %s)",
+  "message.visomod.point_b_selected": "Ponto B selecionado em (%s, %s, %s)",
+  "message.visomod.region_complete": "Região completa: %sx%sx%s blocos.",
+  "item.visomod.export_wand": "Varinha de Exportação"
 }

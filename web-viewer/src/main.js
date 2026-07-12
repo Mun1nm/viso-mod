@@ -1,3 +1,4 @@
+import { setLanguage, applyTranslations, t } from './i18n.js';
 import { MinecraftDataService } from './loader/MinecraftData.js';
 import { ExportLoader } from './loader/ExportLoader.js';
 import { TextureManager } from './engine/TextureManager.js';
@@ -18,6 +19,12 @@ class App {
 
     this.currentStructure = null;
     this.is2DMode = false; // kept in sync for chunkRenderer
+
+    
+    // I18N INIT
+    applyTranslations();
+    document.getElementById('btn-lang-en')?.addEventListener('click', () => setLanguage('en'));
+    document.getElementById('btn-lang-pt')?.addEventListener('click', () => setLanguage('pt'));
 
     this.initUI();
 
@@ -276,9 +283,9 @@ class App {
 
     // Update page title and header with structure name
     const structureName = data.metadata?.name || data.metadata?.fileName || 'Estrutura';
-    document.title = `VisoMod — ${structureName}`;
+    document.title = `${t('title')} — ${structureName}`;
     const headerName = document.getElementById('header-structure-name');
-    if (headerName) headerName.textContent = structureName;
+    if (headerName) headerName.textContent = structureName || t('title');
   }
 
   updateYSlice(sliceY) {
@@ -296,7 +303,7 @@ class App {
     if (!legendPanel || !legendList) return;
 
     if (!this.chunkRenderer.distinctColorsMode) {
-      legendList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 16px 0;">Ative as "Cores Distintas" no menu de Camadas para visualizar a legenda.</div>`;
+      legendList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 16px 0;">${t('distinct_colors_hint') || 'Ative as "Cores Distintas" no menu de Camadas para visualizar a legenda.'}</div>`;
       legendPanel.classList.remove('hidden');
       return;
     }

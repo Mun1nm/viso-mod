@@ -1,4 +1,11 @@
 {
-  "item.visomod.export_wand": "Export Wand",
-  "itemGroup.visomod.tools": "Viso Exporter"
+  "command.visomod.export.error.incomplete": "Incomplete selection! Please define Points A and B using the Export Wand first.",
+  "command.visomod.export.open_browser": "[Click to open in browser]",
+  "command.visomod.export.success": "Structure exported successfully! ",
+  "command.visomod.export.blocks": "%s blocks -> ",
+  "command.visomod.export.error": "Export failed: %s",
+  "message.visomod.point_a_selected": "Point A selected at (%s, %s, %s)",
+  "message.visomod.point_b_selected": "Point B selected at (%s, %s, %s)",
+  "message.visomod.region_complete": "Region complete: %sx%sx%s blocks.",
+  "item.visomod.export_wand": "Export Wand"
 }

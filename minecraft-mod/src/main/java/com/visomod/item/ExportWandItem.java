@@ -43,12 +43,14 @@ public class ExportWandItem extends Item {
             int[] dims = SelectionManager.getInstance().getDimensions();
             sendMsg(player, Component.literal("[VisoMod] ")
                     .withStyle(ChatFormatting.GOLD)
-                    .append(Component.literal("Ponto B selecionado em (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")")
+                    .append(Component.translatable("message.visomod.point_b_selected", pos.getX(), pos.getY(), pos.getZ())
                             .withStyle(ChatFormatting.YELLOW)));
 
             if (SelectionManager.getInstance().hasCompleteSelection()) {
-                sendMsg(player, Component.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
-                        .withStyle(ChatFormatting.GREEN));
+                sendMsg(player, Component.literal("[VisoMod] ")
+                        .withStyle(ChatFormatting.GOLD)
+                        .append(Component.translatable("message.visomod.region_complete", dims[0], dims[1], dims[2])
+                        .withStyle(ChatFormatting.GREEN)));
             }
         }
         return InteractionResult.SUCCESS;
@@ -73,12 +75,14 @@ public class ExportWandItem extends Item {
                 int[] dims = SelectionManager.getInstance().getDimensions();
                 sendMsg(player, Component.literal("[VisoMod] ")
                         .withStyle(ChatFormatting.GOLD)
-                        .append(Component.literal("Ponto A selecionado em (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")")
+                        .append(Component.translatable("message.visomod.point_a_selected", pos.getX(), pos.getY(), pos.getZ())
                                 .withStyle(ChatFormatting.AQUA)));
 
                 if (SelectionManager.getInstance().hasCompleteSelection()) {
-                    sendMsg(player, Component.literal("[VisoMod] Região completa: " + dims[0] + "×" + dims[1] + "×" + dims[2] + " blocos.")
-                            .withStyle(ChatFormatting.GREEN));
+                    sendMsg(player, Component.literal("[VisoMod] ")
+                            .withStyle(ChatFormatting.GOLD)
+                            .append(Component.translatable("message.visomod.region_complete", dims[0], dims[1], dims[2])
+                            .withStyle(ChatFormatting.GREEN)));
                 }
             }
             return InteractionResult.SUCCESS;
