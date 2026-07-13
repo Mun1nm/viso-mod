@@ -328,7 +328,7 @@ class App {
     if (!legendPanel || !legendList) return;
 
     if (!this.chunkRenderer.distinctColorsMode) {
-      legendList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 16px 0;">${t('distinct_colors_hint') || 'Ative as "Cores Distintas" no menu de Camadas para visualizar a legenda.'}</div>`;
+      legendList.innerHTML = `<div data-i18n="distinct_colors_hint" style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 16px 0;">${t('distinct_colors_hint') || 'Ative as "Cores Distintas" no menu de Camadas para visualizar a legenda.'}</div>`;
       legendPanel.classList.remove('hidden');
       return;
     }
