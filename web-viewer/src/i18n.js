@@ -41,7 +41,11 @@ export const translations = {
     "stat_total": "Total Blocks",
     "stat_visible": "Visible",
     "stat_culled": "Interior Culled",
-    "layer_max": "Max Visible Layer:"
+    "layer_max": "Max Visible Layer:",
+    "no_structure": "No structure loaded",
+    "drop_desc": "Instant loading and rendering via Three.js InstancedMesh",
+    "layer_down_btn": "▼ Down",
+    "layer_up_btn": "▲ Up"
   },
   pt: {
     "title": "Viso Web Viewer",
@@ -85,7 +89,11 @@ export const translations = {
     "stat_total": "Total de Blocos",
     "stat_visible": "Visíveis",
     "stat_culled": "Interior Culled",
-    "layer_max": "Camada Máxima Visível:"
+    "layer_max": "Camada Máxima Visível:",
+    "no_structure": "Nenhuma estrutura carregada",
+    "drop_desc": "Carregamento e renderização instantânea via Three.js InstancedMesh",
+    "layer_down_btn": "▼ Abaixo",
+    "layer_up_btn": "▲ Acima"
   }
 };
 

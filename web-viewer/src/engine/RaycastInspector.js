@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { t } from '../i18n.js';
 
 export class RaycastInspector {
   constructor(isometricScene, chunkRenderer, mcDataService) {
@@ -84,7 +85,7 @@ export class RaycastInspector {
 
     this.cardEl.classList.remove('hidden');
     this.nameEl.textContent = info.name;
-    this.typeEl.textContent = info.transparent ? 'Bloco Translúcido' : 'Bloco Sólido';
+    this.typeEl.textContent = info.transparent ? t('inspector_transparent') : t('inspector_solid');
     this.colorEl.style.backgroundColor = info.baseColor;
 
     this.coordX.textContent = b.x;

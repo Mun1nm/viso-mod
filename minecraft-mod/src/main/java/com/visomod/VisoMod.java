@@ -53,6 +53,10 @@ public class VisoMod implements ModInitializer {
                 com.visomod.command.ExportCommand.register(dispatcher)
         );
 
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            com.visomod.selection.SelectionManager.getInstance().clearSelection();
+        });
+
         LOGGER.info("[VisoMod] Itens e comandos registrados com sucesso!");
     }
 }
