@@ -53,7 +53,7 @@ public class ExportCommand {
                 errorMsg = Component.translatable("command.visomod.export.error.missing_b");
             }
             
-            Minecraft.getInstance().player.sendSystemMessage(
+            context.getSource().sendFailure(
                     Component.translatable("command.visomod.prefix").withStyle(ChatFormatting.RED)
                     .append(Component.literal(" "))
                     .append(errorMsg.withStyle(ChatFormatting.RED))
@@ -118,7 +118,11 @@ public class ExportCommand {
                 .append(Component.literal("\n"))
                 .append(fileLink);
 
-        Minecraft.getInstance().player.sendSystemMessage(message);
+        Minecraft.getInstance().execute(() -> {
+            if (Minecraft.getInstance().player != null) {
+                Minecraft.getInstance().player.sendSystemMessage(message);
+            }
+        });
     }
 
     private static void sendErrorMessage(CommandSourceStack source, Exception e) {
@@ -132,7 +136,7 @@ public class ExportCommand {
         Component message = Component.translatable("command.visomod.prefix").withStyle(ChatFormatting.RED)
                 .append(Component.literal(" "))
                 .append(errorMessage.withStyle(ChatFormatting.RED));
-        Minecraft.getInstance().player.sendSystemMessage(message);
+        source.sendFailure(message);
         e.printStackTrace();
     }
 }
