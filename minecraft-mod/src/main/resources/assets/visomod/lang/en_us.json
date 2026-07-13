@@ -1,5 +1,7 @@
 {
   "command.visomod.export.error.incomplete": "Incomplete selection! Please define Points A and B using the Export Wand first.",
+  "command.visomod.export.error.missing_a": "You only selected Point B! Please select Point A.",
+  "command.visomod.export.error.missing_b": "You only selected Point A! Please select Point B.",
   "command.visomod.export.open_browser": "[Click to open in browser]",
   "command.visomod.export.success": "Structure exported successfully! ",
   "command.visomod.export.blocks": "%s blocks -> ",

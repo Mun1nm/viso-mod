@@ -1,5 +1,7 @@
 {
   "command.visomod.export.error.incomplete": "Seleção incompleta! Defina os pontos A e B com a Varinha de Exportação primeiro.",
+  "command.visomod.export.error.missing_a": "Você selecionou apenas o Ponto B! Por favor, selecione o Ponto A.",
+  "command.visomod.export.error.missing_b": "Você selecionou apenas o Ponto A! Por favor, selecione o Ponto B.",
   "command.visomod.export.open_browser": "[Clique para abrir no navegador]",
   "command.visomod.export.success": "Estrutura exportada com sucesso! ",
   "command.visomod.export.blocks": "%s blocos -> ",

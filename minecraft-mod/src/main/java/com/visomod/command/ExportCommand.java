@@ -42,11 +42,21 @@ public class ExportCommand {
 
     private static int executeExportSelection(CommandContext<CommandSourceStack> context, boolean generateDebugJson) {
         String fileName = StringArgumentType.getString(context, "nome_arquivo");
-        if (!SelectionManager.getInstance().hasCompleteSelection()) {
+        SelectionManager sm = SelectionManager.getInstance();
+        if (!sm.hasCompleteSelection()) {
+            net.minecraft.network.chat.MutableComponent errorMsg;
+            if (sm.getPosA() == null && sm.getPosB() == null) {
+                errorMsg = Component.translatable("command.visomod.export.error.incomplete");
+            } else if (sm.getPosA() == null) {
+                errorMsg = Component.translatable("command.visomod.export.error.missing_a");
+            } else {
+                errorMsg = Component.translatable("command.visomod.export.error.missing_b");
+            }
+            
             Minecraft.getInstance().player.sendSystemMessage(
                     Component.translatable("command.visomod.prefix").withStyle(ChatFormatting.RED)
                     .append(Component.literal(" "))
-                    .append(Component.translatable("command.visomod.export.error.incomplete").withStyle(ChatFormatting.RED))
+                    .append(errorMsg.withStyle(ChatFormatting.RED))
             );
             return 0;
         }
