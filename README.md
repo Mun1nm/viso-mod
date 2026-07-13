@@ -28,11 +28,10 @@
 
 ## 📷 Screenshots / Demo
 
-*(Replace these placeholders with your actual screenshots/GIFs before posting!)*
 
-![In-game Selection](https://via.placeholder.com/800x400.png?text=In-Game+Selection+Wand)
-![Web Viewer Demo](https://via.placeholder.com/800x400.png?text=Web+Viewer+Isometric+View)
-![Slice Feature Demo](https://via.placeholder.com/800x400.png?text=Layer-by-Layer+Slicing+Feature)
+![In-game Selection](<img width="426" height="240" alt="gif1" src="https://github.com/user-attachments/assets/761f9859-2f6f-49d0-bbef-61cb814896f0" />)
+![Web Viewer Demo](<img width="426" height="240" alt="gif2" src="https://github.com/user-attachments/assets/afa710db-aa35-44d2-9bdc-0d89215deb03" />)
+![Slice Feature Demo](<img width="426" height="240" alt="gif3" src="https://github.com/user-attachments/assets/c2f04d21-5064-4697-b044-c0d6a9859cb4" />)
 
 ---
 
