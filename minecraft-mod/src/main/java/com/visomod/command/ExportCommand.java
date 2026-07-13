@@ -108,7 +108,7 @@ public class ExportCommand {
                 .append(Component.literal("\n"))
                 .append(fileLink);
 
-        source.sendSuccess(() -> message, false);
+        Minecraft.getInstance().player.sendSystemMessage(message);
     }
 
     private static void sendErrorMessage(CommandSourceStack source, Exception e) {
@@ -122,7 +122,7 @@ public class ExportCommand {
         Component message = Component.translatable("command.visomod.prefix").withStyle(ChatFormatting.RED)
                 .append(Component.literal(" "))
                 .append(errorMessage.withStyle(ChatFormatting.RED));
-        source.sendFailure(message);
+        Minecraft.getInstance().player.sendSystemMessage(message);
         e.printStackTrace();
     }
 }
