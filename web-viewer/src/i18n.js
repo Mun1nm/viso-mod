@@ -36,7 +36,12 @@ export const translations = {
     "view_group": "View",
     "angle_group": "Angle",
     "camera_group": "Camera",
-    "env_group": "Environment", "distinct_colors_hint": "Enable 'Distinct Colors' in the Layers menu to view the legend."
+    "env_group": "Environment", "distinct_colors_hint": "Enable 'Distinct Colors' in the Layers menu to view the legend.",
+    "stat_dims": "Dimensions",
+    "stat_total": "Total Blocks",
+    "stat_visible": "Visible",
+    "stat_culled": "Interior Culled",
+    "layer_max": "Max Visible Layer:"
   },
   pt: {
     "title": "Viso Web Viewer",
@@ -75,7 +80,12 @@ export const translations = {
     "view_group": "Visão",
     "angle_group": "Ângulo",
     "camera_group": "Câmera",
-    "env_group": "Ambiente", "distinct_colors_hint": "Ative as 'Cores Distintas' no menu de Camadas para visualizar a legenda."
+    "env_group": "Ambiente", "distinct_colors_hint": "Ative as 'Cores Distintas' no menu de Camadas para visualizar a legenda.",
+    "stat_dims": "Dimensões",
+    "stat_total": "Total de Blocos",
+    "stat_visible": "Visíveis",
+    "stat_culled": "Interior Culled",
+    "layer_max": "Camada Máxima Visível:"
   }
 };
 
