@@ -41,14 +41,16 @@ public class ExportWandItem extends Item {
             SelectionManager.getInstance().setPosB(pos);
 
             int[] dims = SelectionManager.getInstance().getDimensions();
-            sendMsg(player, Component.literal("[VisoMod] ")
+            sendMsg(player, Component.translatable("command.visomod.prefix")
                     .withStyle(ChatFormatting.GOLD)
+                    .append(Component.literal(" "))
                     .append(Component.translatable("message.visomod.point_b_selected", pos.getX(), pos.getY(), pos.getZ())
                             .withStyle(ChatFormatting.YELLOW)));
 
             if (SelectionManager.getInstance().hasCompleteSelection()) {
-                sendMsg(player, Component.literal("[VisoMod] ")
+                sendMsg(player, Component.translatable("command.visomod.prefix")
                         .withStyle(ChatFormatting.GOLD)
+                        .append(Component.literal(" "))
                         .append(Component.translatable("message.visomod.region_complete", dims[0], dims[1], dims[2])
                         .withStyle(ChatFormatting.GREEN)));
             }
@@ -73,14 +75,16 @@ public class ExportWandItem extends Item {
                 SelectionManager.getInstance().setPosA(pos);
 
                 int[] dims = SelectionManager.getInstance().getDimensions();
-                sendMsg(player, Component.literal("[VisoMod] ")
+                sendMsg(player, Component.translatable("command.visomod.prefix")
                         .withStyle(ChatFormatting.GOLD)
+                        .append(Component.literal(" "))
                         .append(Component.translatable("message.visomod.point_a_selected", pos.getX(), pos.getY(), pos.getZ())
                                 .withStyle(ChatFormatting.AQUA)));
 
                 if (SelectionManager.getInstance().hasCompleteSelection()) {
-                    sendMsg(player, Component.literal("[VisoMod] ")
+                    sendMsg(player, Component.translatable("command.visomod.prefix")
                             .withStyle(ChatFormatting.GOLD)
+                            .append(Component.literal(" "))
                             .append(Component.translatable("message.visomod.region_complete", dims[0], dims[1], dims[2])
                             .withStyle(ChatFormatting.GREEN)));
                 }

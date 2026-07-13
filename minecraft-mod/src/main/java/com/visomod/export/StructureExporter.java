@@ -23,7 +23,7 @@ public class StructureExporter {
     public static ExportResult exportSelection(Level world, String fileName, boolean generateDebugJson) throws IOException {
         SelectionManager sm = SelectionManager.getInstance();
         if (!sm.hasCompleteSelection()) {
-            throw new IllegalStateException("Seleção incompleta. Defina os pontos A e B com a Varinha de Exportação.");
+            throw new IllegalStateException("command.visomod.export.error.incomplete");
         }
         return exportSelection(world, fileName, sm.getMinPos(), sm.getMaxPos(), generateDebugJson);
     }

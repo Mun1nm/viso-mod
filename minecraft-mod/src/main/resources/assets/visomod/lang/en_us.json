@@ -7,5 +7,7 @@
   "message.visomod.point_a_selected": "Point A selected at (%s, %s, %s)",
   "message.visomod.point_b_selected": "Point B selected at (%s, %s, %s)",
   "message.visomod.region_complete": "Region complete: %sx%sx%s blocks.",
+  "command.visomod.prefix": "[VisoMod]",
+  "command.visomod.export.error.template": "Viewer HTML template (/assets/visomod/viewer_template.html) not found in mod resources.",
   "item.visomod.export_wand": "Export Wand"
 }

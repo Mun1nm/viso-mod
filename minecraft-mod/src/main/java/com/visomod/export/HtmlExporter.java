@@ -16,11 +16,14 @@ public class HtmlExporter {
 
         String template = loadViewerTemplate();
         if (template == null || template.isEmpty()) {
-            throw new IOException("Template HTML do visualizador (/assets/visomod/viewer_template.html) não encontrado nos recursos do mod.");
+            throw new IOException("command.visomod.export.error.template");
         }
 
+        String langCode = net.minecraft.client.Minecraft.getInstance().options.languageCode;
+
         // Replaces the placeholder inside <script id="embedded-structure-data" type="application/json">
-        String generatedHtml = template.replace("<!-- EMBEDDED_STRUCTURE_DATA -->", jsonContent);
+        String generatedHtml = template.replace("<!-- EMBEDDED_STRUCTURE_DATA -->", jsonContent)
+                                       .replace("<!-- EMBEDDED_LANGUAGE -->", langCode);
 
         try (FileOutputStream fos = new FileOutputStream(htmlFile);
              OutputStreamWriter writer = new OutputStreamWriter(fos, StandardCharsets.UTF_8)) {

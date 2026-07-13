@@ -22,9 +22,32 @@ class App {
 
     
     // I18N INIT
-    applyTranslations();
-    document.getElementById('btn-lang-en')?.addEventListener('click', () => setLanguage('en'));
-    document.getElementById('btn-lang-pt')?.addEventListener('click', () => setLanguage('pt'));
+    const embeddedLangEl = document.getElementById('embedded-language');
+    if (embeddedLangEl && embeddedLangEl.textContent && !embeddedLangEl.textContent.includes('EMBEDDED_LANGUAGE')) {
+      let embedLang = embeddedLangEl.textContent.trim().toLowerCase();
+      if (embedLang.startsWith('pt')) setLanguage('pt');
+      else setLanguage('en');
+    } else {
+      applyTranslations();
+    }
+
+    const langToggleBtn = document.getElementById('btn-lang-toggle');
+    const langDropdownMenu = document.getElementById('lang-dropdown-menu');
+    if (langToggleBtn && langDropdownMenu) {
+      langToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        langDropdownMenu.classList.toggle('hidden');
+      });
+      document.addEventListener('click', () => {
+        langDropdownMenu.classList.add('hidden');
+      });
+      document.querySelectorAll('.lang-option').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          setLanguage(e.target.dataset.lang);
+          langDropdownMenu.classList.add('hidden');
+        });
+      });
+    }
 
     this.initUI();
 

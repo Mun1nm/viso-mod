@@ -44,7 +44,8 @@ public class ExportCommand {
         String fileName = StringArgumentType.getString(context, "nome_arquivo");
         if (!SelectionManager.getInstance().hasCompleteSelection()) {
             Minecraft.getInstance().player.sendSystemMessage(
-                    Component.literal("[VisoMod] ").withStyle(ChatFormatting.RED)
+                    Component.translatable("command.visomod.prefix").withStyle(ChatFormatting.RED)
+                    .append(Component.literal(" "))
                     .append(Component.translatable("command.visomod.export.error.incomplete").withStyle(ChatFormatting.RED))
             );
             return 0;
@@ -97,21 +98,31 @@ public class ExportCommand {
                         .withUnderlined(true)
                         .withClickEvent(clickEvent));
 
-        Component message = Component.literal("[VisoMod] ")
-                .withStyle(ChatFormatting.GOLD)
+        Component message = Component.translatable("command.visomod.prefix").withStyle(ChatFormatting.GREEN)
+                .append(Component.literal(" "))
                 .append(Component.translatable("command.visomod.export.success")
-                        .withStyle(ChatFormatting.GREEN))
+                .withStyle(ChatFormatting.GREEN))
+                .append(Component.literal("\n"))
                 .append(Component.translatable("command.visomod.export.blocks", result.totalBlocks)
-                        .withStyle(ChatFormatting.YELLOW))
+                .withStyle(ChatFormatting.YELLOW))
+                .append(Component.literal("\n"))
                 .append(fileLink);
-        
-        Minecraft.getInstance().player.sendSystemMessage(message);
+
+        source.sendSuccess(() -> message, false);
     }
 
     private static void sendErrorMessage(CommandSourceStack source, Exception e) {
-        Component message = Component.translatable("command.visomod.export.error", e.getMessage())
-                .withStyle(ChatFormatting.RED);
-        Minecraft.getInstance().player.sendSystemMessage(message);
+        net.minecraft.network.chat.MutableComponent errorMessage;
+        if (e.getMessage() != null && e.getMessage().startsWith("command.visomod.")) {
+            errorMessage = Component.translatable(e.getMessage());
+        } else {
+            errorMessage = Component.translatable("command.visomod.export.error", e.getMessage() != null ? e.getMessage() : "Unknown error");
+        }
+        
+        Component message = Component.translatable("command.visomod.prefix").withStyle(ChatFormatting.RED)
+                .append(Component.literal(" "))
+                .append(errorMessage.withStyle(ChatFormatting.RED));
+        source.sendFailure(message);
         e.printStackTrace();
     }
 }

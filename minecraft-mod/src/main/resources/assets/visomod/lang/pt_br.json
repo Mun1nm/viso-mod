@@ -7,5 +7,7 @@
   "message.visomod.point_a_selected": "Ponto A selecionado em (%s, %s, %s)",
   "message.visomod.point_b_selected": "Ponto B selecionado em (%s, %s, %s)",
   "message.visomod.region_complete": "Região completa: %sx%sx%s blocos.",
+  "command.visomod.prefix": "[VisoMod]",
+  "command.visomod.export.error.template": "Template HTML do visualizador (/assets/visomod/viewer_template.html) não encontrado nos recursos do mod.",
   "item.visomod.export_wand": "Varinha de Exportação"
 }
