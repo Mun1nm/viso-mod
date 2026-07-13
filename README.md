@@ -26,12 +26,9 @@
 
 ---
 
-## 📷 Screenshots / Demo
-
-
-![In-game Selection](<img width="426" height="240" alt="gif1" src="https://github.com/user-attachments/assets/761f9859-2f6f-49d0-bbef-61cb814896f0" />)
-![Web Viewer Demo](<img width="426" height="240" alt="gif2" src="https://github.com/user-attachments/assets/afa710db-aa35-44d2-9bdc-0d89215deb03" />)
-![Slice Feature Demo](<img width="426" height="240" alt="gif3" src="https://github.com/user-attachments/assets/c2f04d21-5064-4697-b044-c0d6a9859cb4" />)
+| In-game Selection | Web Viewer Demo | Slice Feature Demo |
+| :---: | :---: | :---: |
+| <img width="426" src="https://github.com/user-attachments/assets/761f9859-2f6f-49d0-bbef-61cb814896f0" /> | <img width="426" src="https://github.com/user-attachments/assets/afa710db-aa35-44d2-9bdc-0d89215deb03" /> | <img width="426" src="https://github.com/user-attachments/assets/c2f04d21-5064-4697-b044-c0d6a9859cb4" /> |
 
 ---
 
